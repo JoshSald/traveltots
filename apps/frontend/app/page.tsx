@@ -1,15 +1,16 @@
 "use client";
 import { CldImage } from "next-cloudinary";
+import { DatePickerContainer } from "@/components/datePickerContainer";
 
 export default function Home() {
   return (
     <main>
-      <section id="hero" className="min-h-screen flex items-center">
+      <section id="hero" className="min-h-auto items-center">
         <div className="mx-auto w-full max-w-[1280px] px-8 flex items-center gap-16">
           {/* Left Content */}
           <div className="w-1/2 max-w-[520px]">
             <h2 className="display-lg text-[var(--color-text-primary)]">
-              Rent children's gear from{" "}
+              Rent children&apos;s gear from{" "}
               <span className="text-[var(--color-primary)]">
                 local families
               </span>
@@ -38,6 +39,9 @@ export default function Home() {
               alt="Kids gear"
             />
           </div>
+        </div>
+        <div className="p-4">
+          <DatePickerContainer />
         </div>
       </section>
     </main>
