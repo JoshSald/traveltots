@@ -29,7 +29,6 @@ export function DatePickerContainer() {
             onValueChange={(value: SetStateAction<string | null>) =>
               setLocation(value)
             }
-            className="w-full"
           >
             <SelectTrigger className="h-16 w-full rounded-lg bg-[var(--color-surface-low)] px-4 flex items-center justify-between border border-[var(--color-border)] font-normal text-[var(--color-text-primary)] hover:bg-[var(--color-surface-low)] data-[placeholder]:text-[var(--color-text-muted)]">
               <div className="flex items-center gap-3">
@@ -81,7 +80,6 @@ export function DatePickerContainer() {
             onValueChange={(value: SetStateAction<string | null>) =>
               setCategory(value)
             }
-            className="w-full"
           >
             <SelectTrigger className="h-16 w-full rounded-lg bg-[var(--color-surface-low)] px-4 flex items-center justify-between border border-[var(--color-border)] font-normal text-[var(--color-text-primary)] hover:bg-[var(--color-surface-low)] data-[placeholder]:text-[var(--color-text-muted)]">
               <div className="flex items-center gap-3">
