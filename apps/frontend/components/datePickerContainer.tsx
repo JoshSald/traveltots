@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { SetStateAction, useState } from "react";
 import { DatePicker } from "@/components/ui/Datepicker";
 import { MapPin, Boxes, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,9 @@ export function DatePickerContainer() {
             Location
           </span>
           <Select
-            onValueChange={(value) => setLocation(value)}
+            onValueChange={(value: SetStateAction<string | null>) =>
+              setLocation(value)
+            }
             className="w-full"
           >
             <SelectTrigger className="h-16 w-full rounded-lg bg-[var(--color-surface-low)] px-4 flex items-center justify-between border border-[var(--color-border)] font-normal text-[var(--color-text-primary)] hover:bg-[var(--color-surface-low)] data-[placeholder]:text-[var(--color-text-muted)]">
@@ -76,7 +78,9 @@ export function DatePickerContainer() {
             Category
           </span>
           <Select
-            onValueChange={(value) => setCategory(value)}
+            onValueChange={(value: SetStateAction<string | null>) =>
+              setCategory(value)
+            }
             className="w-full"
           >
             <SelectTrigger className="h-16 w-full rounded-lg bg-[var(--color-surface-low)] px-4 flex items-center justify-between border border-[var(--color-border)] font-normal text-[var(--color-text-primary)] hover:bg-[var(--color-surface-low)] data-[placeholder]:text-[var(--color-text-muted)]">

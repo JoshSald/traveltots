@@ -51,7 +51,9 @@ function SelectTrigger({
     >
       {children}
       <SelectPrimitive.Icon asChild>
-        <CaretDownIcon className="pointer-events-none size-4 text-(--color-text-muted)" />
+        <span className="pointer-events-none size-4 text-[var(--color-text-muted)] flex items-center justify-center">
+          <CaretDownIcon size={16} />
+        </span>
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
   );
@@ -124,7 +126,7 @@ function SelectItem({
     >
       <span className="pointer-events-none absolute right-2 flex size-4 items-center justify-center">
         <SelectPrimitive.ItemIndicator>
-          <CheckIcon className="pointer-events-none" />
+          <CheckIcon size={16} />
         </SelectPrimitive.ItemIndicator>
       </span>
       <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
@@ -158,7 +160,9 @@ function SelectScrollUpButton({
       )}
       {...props}
     >
-      <CaretUpIcon />
+      <span className="pointer-events-none flex items-center justify-center">
+        <CaretUpIcon size={16} />
+      </span>
     </SelectPrimitive.ScrollUpButton>
   );
 }
@@ -176,7 +180,9 @@ function SelectScrollDownButton({
       )}
       {...props}
     >
-      <CaretDownIcon />
+      <span className="pointer-events-none flex items-center justify-center">
+        <CaretDownIcon size={16} />
+      </span>
     </SelectPrimitive.ScrollDownButton>
   );
 }
