@@ -7,7 +7,7 @@ import {
   useMotionValueEvent,
 } from "motion/react";
 import { cn } from "@/lib/utils";
-
+import Link from "next/link";
 export const FloatingNav = ({
   navItems,
   className,
@@ -15,7 +15,6 @@ export const FloatingNav = ({
   navItems: {
     name: string;
     link: string;
-    icon?: JSX.Element;
   }[];
   className?: string;
 }) => {
@@ -78,15 +77,18 @@ export const FloatingNav = ({
         <div className="w-full bg-[#f9f9f9]/80 backdrop-blur-md border-b border-black/5">
           <div className="mx-auto flex h-[68px] max-w-[1280px] items-center justify-between px-8">
             <div className="flex items-center gap-12">
-              <div className="text-[24px] font-bold text-[#506358] tracking-tight">
+              <Link
+                href="/"
+                className="text-[24px] font-bold text-[#506358] tracking-tight"
+              >
                 TinyTribe
-              </div>
+              </Link>
               <div className="flex items-center gap-12">
                 {navItems.map((navItem, idx: number) => (
                   <a
                     key={`link-${idx}`}
                     href={navItem.link}
-                    className="relative text-[16px] font-medium text-[#5A6061] hover:text-[#2D3435] transition after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:w-0 after:bg-[#506358] after:transition-all hover:after:w-full"
+                    className="relative text-[12px] font-medium text-[#5A6061] hover:text-[#2D3435] transition after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:w-0 after:bg-[#506358] after:transition-all hover:after:w-full"
                   >
                     <span className="block">{navItem.name}</span>
                   </a>

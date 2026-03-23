@@ -22,7 +22,7 @@ export function DatePicker() {
         <Button
           variant="outline"
           id="date-picker-range"
-          className="flex w-full items-center gap-3 rounded-lg bg-[var(--color-surface-low)] px-4 h-[64px] justify-start text-left font-normal hover:bg-[var(--color-surface-low)]"
+          className="flex w-full items-center gap-3 rounded-lg bg-[var(--color-surface-low)] px-4 h-10 justify-start text-left font-normal hover:bg-[var(--color-surface-low)]"
         >
           <CalendarIcon className="h-5 w-5 text-[var(--color-text-muted)]" />
           {date?.from ? (

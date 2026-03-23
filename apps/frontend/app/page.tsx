@@ -4,7 +4,7 @@ import { DatePickerContainer } from "@/components/datePickerContainer";
 
 export default function Home() {
   return (
-    <main>
+    <main className="bg-[(--color-surface)]">
       <section id="hero" className="min-h-auto items-center">
         <div className="mx-auto w-full max-w-[1280px] px-8 flex items-center gap-16">
           {/* Left Content */}
@@ -16,7 +16,7 @@ export default function Home() {
               </span>
             </h2>
 
-            <p className="mt-6 text-muted">
+            <p className="mt-6">
               Access premium baby gear without the permanent price tag.
               Sustainable, curated, and community-driven.
             </p>
@@ -35,7 +35,7 @@ export default function Home() {
               width={576}
               height={700}
               className="relative rounded-xl object-cover"
-              src="https://res.cloudinary.com/josh-cloud/image/upload/v1774261566/TinyTribe/Homepage/download_uyszmw.jpg"
+              src="https://res.cloudinary.com/josh-cloud/image/upload/v1774280147/TinyTribe/Homepage/df813ad3-b2dd-406a-8a08-19720f8a927c.png"
               alt="Kids gear"
             />
           </div>
@@ -44,6 +44,7 @@ export default function Home() {
           <DatePickerContainer />
         </div>
       </section>
+      <section id="featured"></section>
     </main>
   );
 }
