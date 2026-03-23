@@ -1,26 +1,234 @@
 @import "tailwindcss";
 
+/* =========================
+   Pattern Library
+   ========================= */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* =========================
+     COLORS
+     ========================= */
+
+  --color-primary: #506358;
+  --color-primary-dark: #44574c;
+
+  --color-background: #f9f9f9;
+  --color-background-muted: #e4e9ea;
+  --color-background-muted-darker: #cacaca;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f2f4f4;
+  --color-surface-low: #f2f4f4; /* section background */
+  --color-surface-lowest: #ffffff; /* cards/inputs */
+
+  --color-border: rgba(173, 179, 180, 0.2);
+
+  --color-text-primary: #2d3435;
+  --color-text-secondary: #5a6061;
+  --color-text-muted: #757c7d;
+
+  --color-accent-light: rgba(80, 99, 88, 0.1);
+
+  --color-secondary: #5e5e67;
+  --color-tertiary: #586342;
+
+  /* =========================
+     RADIUS
+     ========================= */
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+/* =========================
+   BASE STYLES
+   ========================= */
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  html {
+    font-family:
+      var(--font-inter),
+      ui-sans-serif,
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      Roboto,
+      Helvetica,
+      Arial,
+      sans-serif;
+    background: var(--color-background);
+    color: var(--color-text-primary);
+  }
+
+  body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: var(--color-background);
+    color: var(--color-text-primary);
+    font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  }
+
+  /* Typography */
+
+  h1 {
+    font-family: var(--font-manrope), var(--font-inter), sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  h2 {
+    font-family: var(--font-manrope), var(--font-inter), sans-serif;
+    font-size: 2rem;
+    font-weight: 700;
+  }
+
+  h3 {
+    font-family: var(--font-manrope), var(--font-inter), sans-serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+
+  h4 {
+    font-family: var(--font-manrope), var(--font-inter), sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  p {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--color-text-secondary);
+  }
+
+  small {
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  a {
+    color: var(--color-primary);
+    text-decoration: none;
+  }
+
+  a:hover {
+    opacity: 0.8;
+  }
+  * {
+    border-color: var(--color-border);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* =========================
+   COMPONENT PATTERNS
+   ========================= */
+
+@layer components {
+  /* Buttons */
+
+  .btn-primary {
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    font-size: 0.875rem;
+    background: linear-gradient(135deg, #506358, #44574c);
+    color: #e7fdee;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-card);
+  }
+
+  .btn-primary:hover {
+    background: var(--color-primary-dark);
+  }
+
+  .btn-secondary {
+    padding: 0.75rem 1.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    background: #e4e9ea;
+    color: var(--color-text-primary);
+    border-radius: var(--radius-sm);
+  }
+  .btn-secondary:hover {
+    background: #cacaca;
+  }
+
+  /* Cards */
+
+  .card {
+    background: var(--color-surface);
+    border: none;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    padding: 2rem;
+  }
+
+  .card-hover {
+    transition: box-shadow 0.2s ease;
+  }
+
+  .card-hover:hover {
+    box-shadow: var(--shadow-hover);
+  }
+
+  /* Inputs */
+
+  .input {
+    width: 100%;
+    font-size: 0.875rem;
+    padding: 0.75rem 1rem;
+    background: var(--color-surface-lowest);
+    border: 1px solid rgba(173, 179, 180, 0.2);
+    border-radius: var(--radius-sm);
+  }
+
+  .input:focus {
+    outline: none;
+    background: var(--color-background);
+    border: 1px solid rgba(80, 99, 88, 0.3);
+  }
+
+  /* =========================
+     LAYOUT UTILITIES
+     ========================= */
+
+  .container-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1.5rem;
+  }
+
+  .section {
+    padding: 3rem 0;
+  }
+
+  /* Vertical spacing helpers */
+
+  .stack-sm > * + * {
+    margin-top: 0.5rem;
+  }
+
+  .stack-md > * + * {
+    margin-top: 1rem;
+  }
+
+  .stack-lg > * + * {
+    margin-top: 2rem;
+  }
+
+  /* Flex helpers */
+
+  .flex-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .flex-between {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
 }
