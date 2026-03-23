@@ -1,25 +1,23 @@
-import mongoose, { Schema, type InferSchemaType } from "mongoose";
+import { Schema, model, Document } from "mongoose";
 
-const userSchema = new Schema(
+export type UserRole = "provider" | "renter";
+
+export interface IUser extends Document {
+  name: string;
+  email: string;
+  passwordHash: string;
+  role: UserRole;
+  createdAt: Date;
+}
+
+const userSchema = new Schema<IUser>(
   {
-    name: { type: String, required: true, trim: true },
-
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-      lowercase: true,
-      trim: true,
-    },
-
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
     passwordHash: { type: String, required: true },
-
-    location: { type: String, default: "" },
+    role: { type: String, enum: ["provider", "renter"], required: true, default: "renter" }
   },
-  { timestamps: true }
+  { timestamps: { createdAt: true, updatedAt: false } }
 );
 
-export type User = InferSchemaType<typeof userSchema>;
-
-export const UserModel =
-  mongoose.models.User ?? mongoose.model("User", userSchema);
+export const User = model<IUser>("User", userSchema);
