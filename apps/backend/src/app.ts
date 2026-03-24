@@ -34,10 +34,7 @@ export function createApp() {
   });
 
   const authHandler = toNodeHandler(auth);
-
-  app.use("/api/auth", (req, res, next) => {
-    return authHandler(req, res, next);
-  });
+  app.use("/api/auth", authHandler);
 
   // app.use("/auth", authRouter);
   // app.use("/items", itemsRouter);

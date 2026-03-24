@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { FcGoogle } from "react-icons/fc";
-import { FaApple } from "react-icons/fa";
+import { FaGithub } from "react-icons/fa";
 
 export default function AuthLayout({
   onSuccess,
@@ -182,7 +182,7 @@ export default function AuthLayout({
                       "Content-Type": "application/json",
                     },
                     credentials: "include",
-                    body: JSON.stringify({ provider: "apple" }),
+                    body: JSON.stringify({ provider: "github" }),
                   },
                 );
 
@@ -191,13 +191,13 @@ export default function AuthLayout({
                 if (data?.url) {
                   window.location.href = data.url;
                 } else {
-                  console.error("Apple sign-in failed", data);
+                  console.error("GitHub sign-in failed", data);
                 }
               }}
               className="flex items-center justify-center gap-2 rounded-md border border-gray-200 bg-white hover:bg-gray-50 text-sm py-2 font-medium"
             >
-              <FaApple size={16} />
-              Apple
+              <FaGithub size={16} />
+              GitHub
             </button>
           </div>
 
