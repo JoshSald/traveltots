@@ -1,13 +1,17 @@
-import { Schema, model, Document } from "mongoose";
+import { Schema, model, Types } from "mongoose";
 
 export type UserRole = "provider" | "renter";
 
-export interface IUser extends Document {
+export interface IUser {
   name: string;
   email: string;
   passwordHash: string;
   role: UserRole;
-  location?: string;
+  location?: {
+    type: "Point";
+    coordinates: [number, number]; // [lng, lat]
+  };
+  locationName?: string;
   createdAt: Date;
 }
 
@@ -29,11 +33,24 @@ const userSchema = new Schema<IUser>(
       default: "renter",
     },
     location: {
+      type: {
+        type: String,
+        enum: ["Point"],
+        required: false,
+      },
+      coordinates: {
+        type: [Number],
+        required: false,
+      },
+    },
+    locationName: {
       type: String,
       default: "",
     },
   },
   { timestamps: { createdAt: true, updatedAt: false } },
 );
+
+userSchema.index({ location: "2dsphere" });
 
 export const UserModel = model<IUser>("User", userSchema);
