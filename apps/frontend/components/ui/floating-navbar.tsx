@@ -8,6 +8,22 @@ import {
 } from "motion/react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog";
+import AuthLayout from "@/components/auth/AuthLayout";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuPortal,
+} from "@/components/ui/dropdown-menu";
 export const FloatingNav = ({
   navItems,
   className,
@@ -21,6 +37,38 @@ export const FloatingNav = ({
   const { scrollY } = useScroll();
   const [visible, setVisible] = useState(true);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  type User = {
+    name?: string;
+    email?: string;
+  };
+
+  const [user, setUser] = useState<User | null>(null);
+  const [mode, setMode] = useState<"login" | "signup">("login");
+
+  const fetchSession = async () => {
+    try {
+      const res = await fetch("http://127.0.0.1:5050/api/auth/session", {
+        credentials: "include",
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data?.user || null;
+    } catch {
+      return null;
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch("http://127.0.0.1:5050/api/auth/sign-out", {
+        method: "POST",
+        credentials: "include",
+      });
+      setUser(null);
+    } catch (err) {
+      console.error("Logout failed", err);
+    }
+  };
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     const heroHeight = window.innerHeight;
@@ -49,6 +97,13 @@ export const FloatingNav = ({
   });
 
   useEffect(() => {
+    const loadUser = async () => {
+      const u = await fetchSession();
+      if (u) setUser(u);
+    };
+
+    loadUser();
+
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
@@ -96,9 +151,81 @@ export const FloatingNav = ({
               </div>
             </div>
             <div className="flex items-center gap-6">
-              <button className="rounded-md bg-[#506358] px-5 py-2 text-sm font-semibold text-[#E7FDEE] transition-all hover:bg-[#44574C]">
-                <span>Login</span>
-              </button>
+              {user ? (
+                <DropdownMenu modal={false}>
+                  <DropdownMenuTrigger asChild>
+                    <Avatar className="cursor-pointer">
+                      <AvatarImage src="" />
+                      <AvatarFallback>{user.name?.[0] || "U"}</AvatarFallback>
+                    </Avatar>
+                  </DropdownMenuTrigger>
+
+                  <DropdownMenuPortal>
+                    <DropdownMenuContent
+                      align="end"
+                      sideOffset={8}
+                      className="z-[9999] min-w-[160px]"
+                    >
+                      <DropdownMenuItem asChild>
+                        <Link href="/dashboard">Dashboard</Link>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleLogout}>
+                        Logout
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenuPortal>
+                </DropdownMenu>
+              ) : (
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <button className="rounded-md bg-[#506358] px-5 py-2 text-sm font-semibold text-[#E7FDEE] transition-all hover:bg-[#44574C]">
+                      <span>Login</span>
+                    </button>
+                  </DialogTrigger>
+
+                  <DialogContent
+                    showCloseButton={false}
+                    className="
+                      z-[6000]
+                      w-[100vw] md:w-[100vw] lg:w-[90vw]
+                      max-w-full
+                      p-0
+                      rounded-xl
+                      bg-transparent
+                      border-none
+                      shadow-none
+                    "
+                  >
+                    <DialogTitle></DialogTitle>
+
+                    <div className="relative backdrop-blur-xl bg-white/60 rounded-xl overflow-hidden">
+                      <DialogClose asChild>
+                        <button
+                          className="
+                            absolute top-4 right-4 z-[10]
+                            w-8 h-8 flex items-center justify-center
+                            rounded-full bg-white/80 backdrop-blur-md
+                            shadow-md
+                          "
+                        >
+                          ✕
+                        </button>
+                      </DialogClose>
+
+                      <AuthLayout
+                        formType={mode}
+                        onSuccess={(user: {
+                          name?: string;
+                          email?: string;
+                        }) => {
+                          return setUser(user);
+                        }}
+                        onToggleMode={(newMode) => setMode(newMode)}
+                      />
+                    </div>
+                  </DialogContent>
+                </Dialog>
+              )}
             </div>
           </div>
         </div>

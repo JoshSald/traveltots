@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { ItemModel } from "../models/Item.ts";
+import { ItemModel } from "../models/Item.js";
 
 function getUser(req: Request) {
   return (req as any).user as { userId: string; email: string } | undefined;

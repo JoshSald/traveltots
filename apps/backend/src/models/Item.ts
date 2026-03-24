@@ -14,7 +14,7 @@ const itemSchema = new Schema(
     location: { type: String, default: "", trim: true }, // for MVP (later: geo)
     active: { type: Boolean, default: true },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export type Item = InferSchemaType<typeof itemSchema>;
