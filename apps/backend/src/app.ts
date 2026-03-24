@@ -1,9 +1,8 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import { betterAuth } from "better-auth";
+import { createAuth } from "./auth/auth.config";
 import { toNodeHandler } from "better-auth/node";
-import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { MongoClient } from "mongodb";
 
 // import { authRouter } from "./routes/auth.routes.ts";
@@ -11,7 +10,6 @@ import { MongoClient } from "mongodb";
 
 const client = new MongoClient(process.env.MONGO_URI!);
 await client.connect();
-const db = client.db("traveltots");
 
 export function createApp() {
   const app = express();
@@ -29,24 +27,17 @@ export function createApp() {
   app.use(express.json());
   app.use(cookieParser());
 
-  const auth = betterAuth({
-    emailAndPassword: {
-      enabled: true,
-    },
-    trustedOrigins: ["http://localhost:3000", "http://127.0.0.1:3000"],
-    baseURL: "http://127.0.0.1:5050",
-    secret: process.env.BETTER_AUTH_SECRET!,
-
-    database: mongodbAdapter(db, {
-      client,
-    }),
-  });
+  const auth = createAuth(client);
 
   app.get("/health", (_req, res) => {
     res.json({ ok: true });
   });
 
-  app.use("/api/auth", toNodeHandler(auth));
+  const authHandler = toNodeHandler(auth);
+
+  app.use("/api/auth", (req, res, next) => {
+    return authHandler(req, res, next);
+  });
 
   // app.use("/auth", authRouter);
   // app.use("/items", itemsRouter);

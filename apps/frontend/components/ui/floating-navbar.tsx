@@ -37,7 +37,26 @@ export const FloatingNav = ({
   const { scrollY } = useScroll();
   const [visible, setVisible] = useState(true);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const [user, setUser] = useState<unknown>(null);
+  type User = {
+    name?: string;
+    email?: string;
+  };
+
+  const [user, setUser] = useState<User | null>(null);
+  const [mode, setMode] = useState<"login" | "signup">("login");
+
+  const fetchSession = async () => {
+    try {
+      const res = await fetch("http://127.0.0.1:5050/api/auth/session", {
+        credentials: "include",
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      return data?.user || null;
+    } catch {
+      return null;
+    }
+  };
 
   const handleLogout = async () => {
     try {
@@ -78,22 +97,12 @@ export const FloatingNav = ({
   });
 
   useEffect(() => {
-    const fetchSession = async () => {
-      try {
-        const res = await fetch("http://127.0.0.1:5050/api/auth/session", {
-          credentials: "include",
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          setUser(data?.user || null);
-        }
-      } catch (err) {
-        console.error("Session fetch failed", err);
-      }
+    const loadUser = async () => {
+      const u = await fetchSession();
+      if (u) setUser(u);
     };
 
-    fetchSession();
+    loadUser();
 
     return () => {
       if (timeoutRef.current) {
@@ -203,7 +212,16 @@ export const FloatingNav = ({
                         </button>
                       </DialogClose>
 
-                      <AuthLayout onSuccess={(user) => setUser(user)} />
+                      <AuthLayout
+                        formType={mode}
+                        onSuccess={(user: {
+                          name?: string;
+                          email?: string;
+                        }) => {
+                          return setUser(user);
+                        }}
+                        onToggleMode={(newMode) => setMode(newMode)}
+                      />
                     </div>
                   </DialogContent>
                 </Dialog>

@@ -4,21 +4,39 @@ import { CldImage } from "next-cloudinary";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { FcGoogle } from "react-icons/fc";
+import { FaApple } from "react-icons/fa";
 
 export default function AuthLayout({
   onSuccess,
   formType = "login",
+  onToggleMode,
 }: {
-  onSuccess?: (user: unknown) => void;
+  onSuccess?: (user: { name?: string; email?: string }) => void;
   formType?: "login" | "signup";
+  onToggleMode?: (mode: "login" | "signup") => void;
 }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+
+  const getPasswordStrength = () => {
+    if (password.length < 6) return "weak";
+    if (password.match(/^(?=.*[A-Z])(?=.*[0-9]).{6,}$/)) return "strong";
+    return "medium";
+  };
+
+  const strength = getPasswordStrength();
 
   const handleSubmit = async () => {
     try {
+      if (formType === "signup" && password !== confirmPassword) {
+        toast.error("Passwords do not match");
+        return;
+      }
       const endpoint =
         formType === "signup"
           ? "http://127.0.0.1:5050/api/auth/sign-up/email"
@@ -68,7 +86,10 @@ export default function AuthLayout({
       {/* LEFT SIDE */}
       <div className="hidden md:block bg-[var(--color-surface-muted)]">
         <div className="hidden md:flex p-10 flex-col justify-between h-full">
-          <div className="stack-md">
+          <div
+            key={formType}
+            className="stack-md animate-in fade-in-0 slide-in-from-bottom-2 duration-300"
+          >
             <h2 className="font-bold leading-tight">
               The Modern Heirloom for{" "}
               <span className="text-[var(--color-primary)]">
@@ -122,9 +143,62 @@ export default function AuthLayout({
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-2">
-            <button className="btn-secondary text-sm py-2">Google</button>
-            <button className="btn-secondary text-sm py-2">Apple</button>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={async () => {
+                const res = await fetch(
+                  "http://127.0.0.1:5050/api/auth/sign-in/social",
+                  {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    credentials: "include",
+                    body: JSON.stringify({ provider: "google" }),
+                  },
+                );
+
+                const data = await res.json();
+
+                if (data?.url) {
+                  window.location.href = data.url;
+                } else {
+                  console.error("Google sign-in failed", data);
+                }
+              }}
+              className="flex items-center justify-center gap-2 rounded-md border border-gray-200 bg-white hover:bg-gray-50 text-sm py-2 font-medium"
+            >
+              <FcGoogle size={18} />
+              Google
+            </button>
+
+            <button
+              onClick={async () => {
+                const res = await fetch(
+                  "http://127.0.0.1:5050/api/auth/sign-in/social",
+                  {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    credentials: "include",
+                    body: JSON.stringify({ provider: "apple" }),
+                  },
+                );
+
+                const data = await res.json();
+
+                if (data?.url) {
+                  window.location.href = data.url;
+                } else {
+                  console.error("Apple sign-in failed", data);
+                }
+              }}
+              className="flex items-center justify-center gap-2 rounded-md border border-gray-200 bg-white hover:bg-gray-50 text-sm py-2 font-medium"
+            >
+              <FaApple size={16} />
+              Apple
+            </button>
           </div>
 
           <div className="flex items-center gap-3 text-xs text-[var(--color-text-muted)]">
@@ -133,7 +207,13 @@ export default function AuthLayout({
             <div className="flex-1 h-px bg-[var(--color-border)]" />
           </div>
 
-          <div className="stack-md">
+          <form
+            className="stack-md"
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSubmit();
+            }}
+          >
             {formType === "signup" && (
               <div>
                 <label className="block text-sm mb-1">Full Name</label>
@@ -162,34 +242,84 @@ export default function AuthLayout({
                 </span>
               </div>
 
-              <input
-                type="password"
-                className="input text-sm py-2"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  className="input text-sm py-2 pr-10"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-[var(--color-text-muted)]"
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
             </div>
 
-            <button
-              onClick={handleSubmit}
-              className="btn-primary w-full text-sm py-2"
-            >
+            {formType === "signup" && password && (
+              <p
+                className={`text-xs ${
+                  strength === "weak"
+                    ? "text-red-500"
+                    : strength === "medium"
+                      ? "text-yellow-500"
+                      : "text-green-600"
+                }`}
+              >
+                Password strength: {strength}
+              </p>
+            )}
+
+            {formType === "signup" && (
+              <div>
+                <label className="block text-sm mb-1">Repeat Password</label>
+                <input
+                  type="password"
+                  className={`input text-sm py-2 ${
+                    confirmPassword && password !== confirmPassword
+                      ? "border-red-500"
+                      : ""
+                  }`}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
+              </div>
+            )}
+
+            <button type="submit" className="btn-primary w-full text-sm py-2">
               {formType === "signup" ? "Sign Up" : "Sign In"}
             </button>
-          </div>
+          </form>
 
           <p className="text-xs text-center text-[var(--color-text-muted)]">
             {formType === "signup" ? (
               <>
                 Already have an account?{" "}
-                <span className="text-[var(--color-primary)] cursor-pointer">
+                <span
+                  className="text-[var(--color-primary)] cursor-pointer"
+                  onClick={() => {
+                    if (onToggleMode) {
+                      onToggleMode("login");
+                    }
+                  }}
+                >
                   Sign In
                 </span>
               </>
             ) : (
               <>
                 Don’t have an account?{" "}
-                <span className="text-[var(--color-primary)] cursor-pointer">
+                <span
+                  className="text-[var(--color-primary)] cursor-pointer"
+                  onClick={() => {
+                    if (onToggleMode) {
+                      onToggleMode("signup");
+                    }
+                  }}
+                >
                   Create Account
                 </span>
               </>
