@@ -41,11 +41,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={cn("font-mono", jetbrainsMono.variable)}>
-      <body className={`${inter.variable} ${manrope.variable} pt-[68px]`}>
+      <body className={`${inter.variable} ${manrope.variable}`}>
         <header>
           <Navbar />
         </header>
-        {children}
+        <div className="pt-[68px]">{children}</div>
         <footer>
           <Footer />
         </footer>

@@ -1,8 +1,60 @@
 "use client";
 
 import { CldImage } from "next-cloudinary";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 
-export default function AuthLayout() {
+export default function AuthLayout({
+  onSuccess,
+}: {
+  onSuccess?: (user: any) => void;
+}) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const router = useRouter();
+
+  const handleLogin = async () => {
+    try {
+      const res = await fetch("http://127.0.0.1:5050/api/auth/sign-in/email", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          email,
+          password,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        console.error("Login error:", data);
+        alert(data?.message || "Login failed");
+        return;
+      }
+
+      console.log("Logged in:", data);
+
+      // Use returned user directly (BetterAuth already gives session data)
+      const user = data.user;
+
+      console.log("User:", user);
+
+      // If modal usage → close it
+      if (onSuccess) {
+        onSuccess(user);
+      } else {
+        // If standalone page → redirect
+        router.push("/dashboard");
+      }
+    } catch (err) {
+      console.error("Network error:", err);
+      alert("Something went wrong. Check console.");
+    }
+  };
+
   return (
     <div className="w-full max-w-6xl grid grid-cols-1 md:grid-cols-2 bg-[var(--color-surface)] rounded-xl overflow-hidden shadow-[0px_10px_40px_-5px_rgba(45,52,53,0.08)]">
       {/* LEFT SIDE */}
@@ -79,6 +131,8 @@ export default function AuthLayout() {
               <input
                 className="input text-sm py-2"
                 placeholder="name@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
               />
             </div>
 
@@ -90,10 +144,20 @@ export default function AuthLayout() {
                 </span>
               </div>
 
-              <input type="password" className="input text-sm py-2" />
+              <input
+                type="password"
+                className="input text-sm py-2"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
             </div>
 
-            <button className="btn-primary w-full text-sm py-2">Sign In</button>
+            <button
+              onClick={handleLogin}
+              className="btn-primary w-full text-sm py-2"
+            >
+              Sign In
+            </button>
           </div>
 
           <p className="text-xs text-center text-[var(--color-text-muted)]">
