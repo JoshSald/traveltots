@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import { createAuth } from "./auth/auth.config";
+import { createAuth } from "./auth/auth.config.js";
 import { toNodeHandler } from "better-auth/node";
 import { MongoClient } from "mongodb";
 
@@ -9,9 +9,19 @@ import { MongoClient } from "mongodb";
 // import { itemsRouter } from "./routes/items.routes.ts";
 
 const client = new MongoClient(process.env.MONGO_URI!);
-await client.connect();
 
-export function createApp() {
+let isConnected = false;
+
+async function connectClient() {
+  if (!isConnected) {
+    await client.connect();
+    isConnected = true;
+  }
+}
+
+export async function createApp() {
+  await connectClient();
+
   const app = express();
   app.use((req, res, next) => {
     console.log("Incoming:", req.method, req.url);
