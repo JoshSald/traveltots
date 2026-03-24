@@ -4,6 +4,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { Toaster } from "sonner";
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
@@ -49,6 +50,7 @@ export default function RootLayout({
         <footer>
           <Footer />
         </footer>
+        <Toaster richColors position="top-right" className="z-[99999]" />
       </body>
     </html>
   );

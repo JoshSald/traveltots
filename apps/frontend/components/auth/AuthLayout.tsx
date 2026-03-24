@@ -3,55 +3,63 @@
 import { CldImage } from "next-cloudinary";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function AuthLayout({
   onSuccess,
+  formType = "login",
 }: {
-  onSuccess?: (user: any) => void;
+  onSuccess?: (user: unknown) => void;
+  formType?: "login" | "signup";
 }) {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const router = useRouter();
 
-  const handleLogin = async () => {
+  const handleSubmit = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:5050/api/auth/sign-in/email", {
+      const endpoint =
+        formType === "signup"
+          ? "http://127.0.0.1:5050/api/auth/sign-up/email"
+          : "http://127.0.0.1:5050/api/auth/sign-in/email";
+
+      const body =
+        formType === "signup" ? { name, email, password } : { email, password };
+
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify({
-          email,
-          password,
-        }),
+        body: JSON.stringify(body),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
-        console.error("Login error:", data);
-        alert(data?.message || "Login failed");
+        console.error("Auth error:", data);
+        toast.error(data?.message || "Something went wrong");
         return;
       }
 
-      console.log("Logged in:", data);
-
-      // Use returned user directly (BetterAuth already gives session data)
       const user = data.user;
 
-      console.log("User:", user);
+      // Show success toast
+      toast.success(`Welcome ${user?.name || "back"}!`);
 
-      // If modal usage → close it
       if (onSuccess) {
         onSuccess(user);
       } else {
-        // If standalone page → redirect
-        router.push("/dashboard");
+        // Delay redirect so toast is visible
+        setTimeout(() => {
+          router.push("/dashboard");
+        }, 600);
       }
     } catch (err) {
       console.error("Network error:", err);
-      alert("Something went wrong. Check console.");
+      toast.error("Something went wrong. Check console.");
     }
   };
 
@@ -126,6 +134,16 @@ export default function AuthLayout({
           </div>
 
           <div className="stack-md">
+            {formType === "signup" && (
+              <div>
+                <label className="block text-sm mb-1">Full Name</label>
+                <input
+                  className="input text-sm py-2"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                />
+              </div>
+            )}
             <div>
               <label className="block text-sm mb-1">Email Address</label>
               <input
@@ -153,18 +171,29 @@ export default function AuthLayout({
             </div>
 
             <button
-              onClick={handleLogin}
+              onClick={handleSubmit}
               className="btn-primary w-full text-sm py-2"
             >
-              Sign In
+              {formType === "signup" ? "Sign Up" : "Sign In"}
             </button>
           </div>
 
           <p className="text-xs text-center text-[var(--color-text-muted)]">
-            Don’t have an account?{" "}
-            <span className="text-[var(--color-primary)] cursor-pointer">
-              Create Account
-            </span>
+            {formType === "signup" ? (
+              <>
+                Already have an account?{" "}
+                <span className="text-[var(--color-primary)] cursor-pointer">
+                  Sign In
+                </span>
+              </>
+            ) : (
+              <>
+                Don’t have an account?{" "}
+                <span className="text-[var(--color-primary)] cursor-pointer">
+                  Create Account
+                </span>
+              </>
+            )}
           </p>
         </div>
       </div>
