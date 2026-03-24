@@ -8,6 +8,14 @@ import {
 } from "motion/react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog";
+import AuthLayout from "@/components/auth/AuthLayout";
 export const FloatingNav = ({
   navItems,
   className,
@@ -96,9 +104,48 @@ export const FloatingNav = ({
               </div>
             </div>
             <div className="flex items-center gap-6">
-              <button className="rounded-md bg-[#506358] px-5 py-2 text-sm font-semibold text-[#E7FDEE] transition-all hover:bg-[#44574C]">
-                <span>Login</span>
-              </button>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <button className="rounded-md bg-[#506358] px-5 py-2 text-sm font-semibold text-[#E7FDEE] transition-all hover:bg-[#44574C]">
+                    <span>Login</span>
+                  </button>
+                </DialogTrigger>
+
+                <DialogContent
+                  showCloseButton={false}
+                  className="
+                    z-[6000]
+                    w-[100vw] md:w-[100vw] lg:w-[90vw]
+                    max-w-full
+                    p-0
+                    rounded-xl
+                    bg-transparent
+                    border-none
+                    shadow-none
+                  "
+                >
+                  <DialogTitle></DialogTitle>
+
+                  {/* Glassy wrapper */}
+                  <div className="relative backdrop-blur-xl bg-white/60 rounded-xl overflow-hidden">
+                    {/* Close button */}
+                    <DialogClose asChild>
+                      <button
+                        className="
+                          absolute top-4 right-4 z-[10]
+                          w-8 h-8 flex items-center justify-center
+                          rounded-full bg-white/80 backdrop-blur-md
+                          shadow-md
+                        "
+                      >
+                        ✕
+                      </button>
+                    </DialogClose>
+
+                    <AuthLayout />
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
         </div>
