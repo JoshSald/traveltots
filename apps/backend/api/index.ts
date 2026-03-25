@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { createApp } from "../src/app.js";
+import { createApp } from "../src/createApp.js";
 import { connectDB } from "../src/db.js";
 import "../src/models/Category.js";
 
