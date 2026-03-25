@@ -20,8 +20,3 @@ if (process.env.NODE_ENV !== "production") {
     console.log(`🚀 Backend running on http://localhost:${PORT}`);
   });
 }
-
-// Vercel serverless handler
-export default function handler(req: any, res: any) {
-  return app(req, res);
-}
