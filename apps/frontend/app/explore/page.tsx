@@ -27,7 +27,7 @@ export default function ExplorePage() {
       }).toString();
 
       const res = await fetch(
-        `http://localhost:5050/api/listings/near?${query}`,
+        `${process.env.NEXT_PUBLIC_API_URL}/api/listings/near?${query}`,
       );
 
       const data = await res.json();
