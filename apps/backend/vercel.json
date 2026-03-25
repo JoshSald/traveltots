@@ -1,9 +1,4 @@
 {
-  "functions": {
-    "dist/server.js": {
-      "runtime": "nodejs20.x"
-    }
-  },
   "routes": [
     {
       "src": "/(.*)",
