@@ -45,3 +45,5 @@ coverage/
 .cache/
 
 seed.ts
+.vercel
+.env*.local
