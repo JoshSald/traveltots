@@ -34,8 +34,6 @@ if (process.env.NODE_ENV !== "production") {
   });
 }
 
-// Vercel serverless handler
-export default async function handler(req: any, res: any) {
-  const app = await getApp();
-  return app(req, res);
-}
+// Export for Vercel
+const app = await getApp();
+export default app;
