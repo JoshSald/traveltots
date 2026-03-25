@@ -1,4 +1,9 @@
 {
+  "functions": {
+    "dist/server.js": {
+      "includeFiles": "node_modules/mongodb/**"
+    }
+  },
   "routes": [
     {
       "src": "/(.*)",
