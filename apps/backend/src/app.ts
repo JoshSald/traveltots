@@ -57,15 +57,15 @@ export async function createApp() {
 
   const auth = createAuth(client);
 
-  app.get("/health", (_req, res) => {
+  app.get("/api/health", (_req, res) => {
     res.json({ ok: true });
   });
 
   const authHandler = toNodeHandler(auth);
-  app.use("/auth", authHandler);
+  app.use("/api/auth", authHandler);
 
-  app.use(bookingRoutes);
-  app.use(listingRoutes);
+  app.use("/api", bookingRoutes);
+  app.use("/api", listingRoutes);
 
   // app.use("/auth", authRouter);
   // app.use("/items", itemsRouter);
