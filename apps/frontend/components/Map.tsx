@@ -94,6 +94,9 @@ export default function MapView(props: any) {
 
       const triggerFetch = () => {
         const bounds = map.getBounds();
+
+        if (!bounds) return;
+
         const ne = bounds.getNorthEast();
         const sw = bounds.getSouthWest();
 
