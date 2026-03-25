@@ -62,10 +62,10 @@ export async function createApp() {
   });
 
   const authHandler = toNodeHandler(auth);
-  app.use("/api/auth", authHandler);
+  app.use("/auth", authHandler);
 
-  app.use("/api", bookingRoutes);
-  app.use("/api", listingRoutes);
+  app.use(bookingRoutes);
+  app.use(listingRoutes);
 
   // app.use("/auth", authRouter);
   // app.use("/items", itemsRouter);
