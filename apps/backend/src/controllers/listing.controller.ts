@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import { Listing } from "../models/Listing";
-import { CategoryModel } from "../models/Category";
+import { Listing } from "../models/Listing.js";
+import { CategoryModel } from "../models/Category.js";
 
 export async function getNearbyListings(req: Request, res: Response) {
   try {
