@@ -43,3 +43,5 @@ coverage/
 # Temporary files
 .tmp/
 .cache/
+
+seed.ts

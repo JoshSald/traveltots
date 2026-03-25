@@ -3,15 +3,16 @@ import mongoose, { Schema, type InferSchemaType } from "mongoose";
 const itemSchema = new Schema(
   {
     ownerId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    listingId: { type: Schema.Types.ObjectId, ref: "Listing", required: true },
 
     title: { type: String, required: true, trim: true },
     description: { type: String, default: "", trim: true },
 
-    category: { type: String, required: true, trim: true }, // stroller, toys, etc.
-    ageRange: { type: String, default: "", trim: true }, // e.g. "0-6 months"
-    condition: { type: String, default: "", trim: true }, // e.g. "good"
-
-    location: { type: String, default: "", trim: true }, // for MVP (later: geo)
+    category: { type: Schema.Types.ObjectId, ref: "Category", required: true },
+    ageRange: { type: String, default: "", trim: true },
+    condition: { type: String, default: "", trim: true },
+    images: { type: [String], default: [] },
+    priceOverride: { type: Number, default: null },
     active: { type: Boolean, default: true },
   },
   { timestamps: true },

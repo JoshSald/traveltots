@@ -4,6 +4,8 @@ import cookieParser from "cookie-parser";
 import { createAuth } from "./auth/auth.config.js";
 import { toNodeHandler } from "better-auth/node";
 import { MongoClient } from "mongodb";
+import bookingRoutes from "./routes/booking.routes.js";
+import listingRoutes from "./routes/listing.routes.js";
 
 // import { authRouter } from "./routes/auth.routes.ts";
 // import { itemsRouter } from "./routes/items.routes.ts";
@@ -45,6 +47,9 @@ export async function createApp() {
 
   const authHandler = toNodeHandler(auth);
   app.use("/api/auth", authHandler);
+
+  app.use("/api", bookingRoutes);
+  app.use("/api", listingRoutes);
 
   // app.use("/auth", authRouter);
   // app.use("/items", itemsRouter);
