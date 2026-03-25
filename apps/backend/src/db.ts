@@ -7,4 +7,5 @@ export async function connectDB(uri: string) {
 
   await mongoose.connect(uri);
   console.log("MongoDB connected");
+  console.log("DB NAME:", mongoose.connection.name);
 }
