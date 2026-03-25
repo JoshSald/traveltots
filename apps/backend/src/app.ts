@@ -10,15 +10,27 @@ import listingRoutes from "./routes/listing.routes.js";
 // import { authRouter } from "./routes/auth.routes.ts";
 // import { itemsRouter } from "./routes/items.routes.ts";
 
-const client = new MongoClient(process.env.MONGO_URI!);
+const MONGO_URI = process.env.MONGO_URI || process.env.MONGO_DB_MONGODB_URI;
+
+if (!MONGO_URI) {
+  throw new Error("Mongo URI is not defined");
+}
+
+const client = new MongoClient(MONGO_URI);
 
 let isConnected = false;
+let connecting: Promise<void> | null = null;
 
 async function connectClient() {
-  if (!isConnected) {
-    await client.connect();
-    isConnected = true;
+  if (isConnected) return;
+
+  if (!connecting) {
+    connecting = client.connect().then(() => {
+      isConnected = true;
+    });
   }
+
+  await connecting;
 }
 
 export async function createApp() {
@@ -35,8 +47,8 @@ export async function createApp() {
       origin: [
         "http://localhost:3000",
         "http://127.0.0.1:3000",
-        process.env.FRONTEND_URL || "",
-      ].filter(Boolean),
+        process.env.FRONTEND_URL,
+      ].filter((origin): origin is string => Boolean(origin)),
       credentials: true,
     }),
   );
