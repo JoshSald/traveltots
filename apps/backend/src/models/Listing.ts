@@ -21,7 +21,7 @@ export interface IListing {
   ownerId: Types.ObjectId;
   title: string;
   description: string;
-  category: ListingCategory;
+  category: Types.ObjectId;
   brand: string;
   model: string;
   pricePerDay: number;
@@ -54,19 +54,8 @@ const listingSchema = new Schema<IListing>(
     title: { type: String, required: true },
     description: { type: String, required: true },
     category: {
-      type: String,
-      enum: [
-        "stroller",
-        "highchair",
-        "bike_trailer",
-        "monitor",
-        "car_seat",
-        "carrier",
-        "travel_cot",
-        "bouncer",
-        "crib",
-        "toy",
-      ],
+      type: Schema.Types.ObjectId,
+      ref: "Category",
       required: true,
     },
     brand: { type: String, required: true },

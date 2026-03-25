@@ -8,7 +8,7 @@ const itemSchema = new Schema(
     title: { type: String, required: true, trim: true },
     description: { type: String, default: "", trim: true },
 
-    category: { type: String, required: true, trim: true },
+    category: { type: Schema.Types.ObjectId, ref: "Category", required: true },
     ageRange: { type: String, default: "", trim: true },
     condition: { type: String, default: "", trim: true },
     images: { type: [String], default: [] },
