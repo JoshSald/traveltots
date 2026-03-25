@@ -1,10 +1,11 @@
 import "dotenv/config";
-import { createApp } from "../src/app";
-import { connectDB } from "../src/db";
+import { createApp } from "../src/app.js";
+import { connectDB } from "../src/db.js";
+import "../src/models/Category.js";
 
-let app: any = null;
+let app = null;
 
-export default async function handler(req: any, res: any) {
+export default async function handler(req, res) {
   if (!app) {
     const MONGO_URI =
       process.env.MONGO_URI || process.env.MONGO_DB_MONGODB_URI || "";
