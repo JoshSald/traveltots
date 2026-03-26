@@ -8,6 +8,8 @@ import {
 } from "motion/react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { toast } from "sonner";
 import {
   Dialog,
   DialogTitle,
@@ -24,7 +26,9 @@ import {
   DropdownMenuItem,
   DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu";
+import { Spinner } from "@/components/ui/spinner";
 import { buildApiUrl } from "@/lib/api";
+
 export const FloatingNav = ({
   navItems,
   className,
@@ -35,6 +39,7 @@ export const FloatingNav = ({
   }[];
   className?: string;
 }) => {
+  const searchParams = useSearchParams();
   const { scrollY } = useScroll();
   const [visible, setVisible] = useState(true);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -45,15 +50,23 @@ export const FloatingNav = ({
 
   const [user, setUser] = useState<User | null>(null);
   const [mode, setMode] = useState<"login" | "signup">("login");
+  const [sessionResolved, setSessionResolved] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const fetchSession = async () => {
     try {
       const res = await fetch(buildApiUrl("/api/auth/session"), {
         credentials: "include",
+        cache: "no-store",
+        headers: {
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
+        },
       });
       if (!res.ok) return null;
       const data = await res.json();
-      return data?.user || null;
+      return data?.user ?? data?.data?.user ?? null;
     } catch {
       return null;
     }
@@ -61,15 +74,57 @@ export const FloatingNav = ({
 
   const handleLogout = async () => {
     try {
-      await fetch(buildApiUrl("/api/auth/sign-out"), {
+      setIsLoggingOut(true);
+
+      const res = await fetch(buildApiUrl("/api/auth/sign-out"), {
         method: "POST",
         credentials: "include",
+        cache: "no-store",
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "no-cache, no-store, must-revalidate",
+          Pragma: "no-cache",
+          Expires: "0",
+        },
+        body: JSON.stringify({}),
       });
-      setUser(null);
+
+      if (!res.ok) {
+        throw new Error(`Logout request failed with status ${res.status}`);
+      }
+
+      const latest = await fetchSession();
+      setUser(latest);
+      if (!latest) {
+        toast.success("Signed out successfully");
+      }
     } catch (err) {
       console.error("Logout failed", err);
+      toast.error("Could not sign out. Please try again.");
+    } finally {
+      setIsLoggingOut(false);
     }
   };
+
+  useEffect(() => {
+    const authStatus = searchParams.get("auth");
+    if (!authStatus) return;
+
+    const provider = searchParams.get("provider") ?? "oauth";
+
+    if (authStatus === "oauth_success") {
+      toast.success(`Signed in with ${provider}`);
+    }
+
+    if (authStatus === "oauth_error") {
+      toast.error(`Could not sign in with ${provider}`);
+    }
+
+    const url = new URL(window.location.href);
+    url.searchParams.delete("auth");
+    url.searchParams.delete("provider");
+    window.history.replaceState({}, "", url.toString());
+  }, [searchParams]);
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     const heroHeight = window.innerHeight;
@@ -99,18 +154,35 @@ export const FloatingNav = ({
 
   useEffect(() => {
     const loadUser = async () => {
+      if (isLoggingOut) return;
       const u = await fetchSession();
-      if (u) setUser(u);
+      setUser(u);
+      setSessionResolved(true);
     };
 
     loadUser();
 
+    const handleFocus = () => {
+      loadUser();
+    };
+
+    const handleVisibility = () => {
+      if (document.visibilityState === "visible") {
+        loadUser();
+      }
+    };
+
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibility);
+
     return () => {
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibility);
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
     };
-  }, []);
+  }, [isLoggingOut]);
 
   return (
     <AnimatePresence mode="wait">
@@ -152,7 +224,18 @@ export const FloatingNav = ({
               </div>
             </div>
             <div className="flex items-center gap-6">
-              {user ? (
+              {!sessionResolved ? (
+                <button
+                  type="button"
+                  disabled
+                  aria-label="Loading session"
+                  className="rounded-md bg-[#506358] px-5 py-2 text-sm font-semibold text-[#E7FDEE] opacity-90"
+                >
+                  <span className="flex items-center justify-center">
+                    <Spinner className="size-4" />
+                  </span>
+                </button>
+              ) : user ? (
                 <DropdownMenu modal={false}>
                   <DropdownMenuTrigger asChild>
                     <Avatar className="cursor-pointer">
@@ -171,7 +254,7 @@ export const FloatingNav = ({
                         <Link href="/dashboard">Dashboard</Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={handleLogout}>
-                        Logout
+                        {isLoggingOut ? "Logging out..." : "Logout"}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenuPortal>
