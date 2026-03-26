@@ -24,9 +24,48 @@ export default function AuthLayout({
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
+  const getSafeNextPath = () => {
+    if (typeof window === "undefined") return null;
+
+    const rawNext = new URLSearchParams(window.location.search).get("next");
+    if (!rawNext) return null;
+
+    if (!rawNext.startsWith("/") || rawNext.startsWith("//")) {
+      return null;
+    }
+
+    if (rawNext.startsWith("/login") || rawNext.startsWith("/signup")) {
+      return "/explore";
+    }
+
+    return rawNext;
+  };
+
+  const buildAbsoluteUrl = (path: string, params?: Record<string, string>) => {
+    const url = new URL(path, window.location.origin);
+
+    if (params) {
+      for (const [key, value] of Object.entries(params)) {
+        url.searchParams.set(key, value);
+      }
+    }
+
+    return url.toString();
+  };
+
   const startSocialSignIn = async (provider: "google" | "github") => {
     try {
-      const callbackURL = `${window.location.origin}/explore?auth=oauth_success&provider=${provider}`;
+      const nextPath = getSafeNextPath() || "/explore";
+      const callbackURL = buildAbsoluteUrl(nextPath, {
+        auth: "oauth_success",
+        provider,
+      });
+
+      const errorCallbackURL = buildAbsoluteUrl("/login", {
+        auth: "oauth_error",
+        provider,
+        next: nextPath,
+      });
 
       const res = await fetch(buildApiUrl("/api/auth/sign-in/social"), {
         method: "POST",
@@ -37,7 +76,7 @@ export default function AuthLayout({
         body: JSON.stringify({
           provider,
           callbackURL,
-          errorCallbackURL: `${window.location.origin}/login?auth=oauth_error&provider=${provider}`,
+          errorCallbackURL,
         }),
       });
 
@@ -103,9 +142,11 @@ export default function AuthLayout({
       if (onSuccess) {
         onSuccess(user);
       } else {
+        const nextPath = getSafeNextPath();
+
         // Delay redirect so toast is visible
         setTimeout(() => {
-          router.push("/dashboard");
+          router.push(nextPath || "/dashboard");
         }, 600);
       }
     } catch (err) {

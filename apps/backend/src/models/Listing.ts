@@ -1,4 +1,6 @@
-import { Schema, model, Types } from "mongoose";
+import mongoose, { Schema, model, Types } from "mongoose";
+import "./Category.js";
+import "./User.js";
 
 export type ListingCategory =
   | "stroller"
@@ -27,10 +29,20 @@ export interface IListing {
   pricePerDay: number;
   pricePerHour: number | null;
   images: string[];
+  features: string[];
+  specs: Array<{ label: string; value: string }>;
   location: ILocation;
   locationName: string;
   createdAt: Date;
 }
+
+const specSchema = new Schema(
+  {
+    label: { type: String, required: true },
+    value: { type: String, required: true },
+  },
+  { _id: false },
+);
 
 const locationSchema = new Schema<ILocation>(
   {
@@ -63,6 +75,8 @@ const listingSchema = new Schema<IListing>(
     pricePerDay: { type: Number, required: true },
     pricePerHour: { type: Number, default: null },
     images: { type: [String], default: [] },
+    features: { type: [String], default: [] },
+    specs: { type: [specSchema], default: [] },
     location: { type: locationSchema, required: true },
     locationName: { type: String, required: true },
   },
@@ -72,4 +86,6 @@ const listingSchema = new Schema<IListing>(
 // Geo index for /listings/near
 listingSchema.index({ location: "2dsphere" }); // [web:54][web:67]
 
-export const Listing = model<IListing>("Listing", listingSchema);
+export const Listing =
+  (mongoose.models.Listing as mongoose.Model<IListing> | undefined) ||
+  model<IListing>("Listing", listingSchema);

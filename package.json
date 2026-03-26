@@ -5,7 +5,7 @@
   "scripts": {
     "dev:frontend": "npm run dev --workspace=frontend",
     "dev:backend": "npm run dev --workspace=backend",
-    "build": "npm run build --workspaces",
+    "build": "npm run build --workspace=backend && npm run build --workspace=frontend",
     "lint": "npm run lint --workspaces"
   },
   "keywords": [],
