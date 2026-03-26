@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { FcGoogle } from "react-icons/fc";
 import { FaGithub } from "react-icons/fa";
+import { buildApiUrl } from "@/lib/api";
 
 export default function AuthLayout({
   onSuccess,
@@ -39,8 +40,8 @@ export default function AuthLayout({
       }
       const endpoint =
         formType === "signup"
-          ? "http://127.0.0.1:5050/api/auth/sign-up/email"
-          : "http://127.0.0.1:5050/api/auth/sign-in/email";
+          ? buildApiUrl("/api/auth/sign-up/email")
+          : buildApiUrl("/api/auth/sign-in/email");
 
       const body =
         formType === "signup" ? { name, email, password } : { email, password };
@@ -147,7 +148,7 @@ export default function AuthLayout({
             <button
               onClick={async () => {
                 const res = await fetch(
-                  "http://127.0.0.1:5050/api/auth/sign-in/social",
+                  buildApiUrl("/api/auth/sign-in/social"),
                   {
                     method: "POST",
                     headers: {
@@ -175,7 +176,7 @@ export default function AuthLayout({
             <button
               onClick={async () => {
                 const res = await fetch(
-                  "http://127.0.0.1:5050/api/auth/sign-in/social",
+                  buildApiUrl("/api/auth/sign-in/social"),
                   {
                     method: "POST",
                     headers: {

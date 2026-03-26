@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Map from "@/components/Map";
 import { ListingCard } from "@/components/ListingCard";
+import { buildApiUrl } from "@/lib/api";
 
 export default function ExplorePage() {
   const [listings, setListings] = useState<any[]>([]);
@@ -26,9 +27,7 @@ export default function ExplorePage() {
         swLng: bounds.swLng.toString(),
       }).toString();
 
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/listings/near?${query}`,
-      );
+      const res = await fetch(`${buildApiUrl("/api/listings/near")}?${query}`);
 
       const data = await res.json();
       console.log("Fetched listings (bounds):", data);

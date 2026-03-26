@@ -1,31 +1,30 @@
-// src/auth/auth.config.ts
-
 import { betterAuth } from "better-auth";
-import { mongodbAdapter } from "better-auth/adapters/mongodb";
-import { MongoClient } from "mongodb";
+import { mongodbAdapter } from "@better-auth/mongo-adapter";
+import type { Db, MongoClient } from "mongodb";
+import { getAllowedOrigins } from "../lib/allowed-origins.js";
 
-export function createAuth(client: MongoClient) {
-  console.log("GOOGLE_CLIENT_ID:", process.env.GOOGLE_CLIENT_ID);
-  console.log(
-    "GOOGLE_CLIENT_SECRET:",
-    process.env.GOOGLE_CLIENT_SECRET ? "loaded" : "missing",
-  );
-  console.log("AUTH INIT");
-  console.log("Providers:", {
-    google: !!process.env.GOOGLE_CLIENT_ID,
-  });
+type CreateAuthParams = {
+  db: Db;
+  client: MongoClient;
+};
+
+export function createAuth({ db, client }: CreateAuthParams) {
+  const trustedOrigins = getAllowedOrigins();
 
   return betterAuth({
-    database: mongodbAdapter(client.db() as any),
+    database: mongodbAdapter(db, { client }),
     baseURL: process.env.BETTER_AUTH_URL,
+    basePath: "/api/auth",
+    secret: process.env.BETTER_AUTH_SECRET ?? process.env.AUTH_SECRET,
+    trustedOrigins: Array.from(trustedOrigins),
+    emailAndPassword: {
+      enabled: true,
+      disableSignUp: false,
+    },
     socialProviders: {
       google: {
         clientId: process.env.GOOGLE_CLIENT_ID as string,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-      },
-      github: {
-        clientId: process.env.GITHUB_CLIENT_ID as string,
-        clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
       },
     },
   });

@@ -1,11 +1,10 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import { createAuth } from "./auth/auth.config.js";
-import { toNodeHandler } from "better-auth/node";
 import { MongoClient } from "mongodb";
 import bookingRoutes from "./routes/booking.routes.js";
 import listingRoutes from "./routes/listing.routes.js";
+import { getAllowedOrigins } from "./lib/allowed-origins.js";
 
 // import { authRouter } from "./routes/auth.routes.ts";
 // import { itemsRouter } from "./routes/items.routes.ts";
@@ -34,7 +33,9 @@ async function connectClient() {
 }
 
 export async function createApp() {
-  await connectClient();
+  connectClient().catch((err) => {
+    console.error("Mongo connection failed:", err);
+  });
 
   const app = express();
   app.use((req, res, next) => {
@@ -44,31 +45,38 @@ export async function createApp() {
 
   app.use(
     cors({
-      origin: [
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        process.env.FRONTEND_URL,
-      ].filter((origin): origin is string => Boolean(origin)),
+      origin: Array.from(getAllowedOrigins()),
       credentials: true,
     }),
   );
   app.use(express.json());
   app.use(cookieParser());
 
-  const auth = createAuth(client);
+  // const auth = createAuth(client);
 
-  app.get("/health", (_req, res) => {
+  app.get("/api/health", (_req, res) => {
     res.json({ ok: true });
   });
 
-  const authHandler = toNodeHandler(auth);
-  app.use("/api/auth", authHandler);
+  // Debug route to echo the path
+  app.get("/api/debug", (req, res) => {
+    res.json({ path: req.url, originalUrl: req.originalUrl });
+  });
+
+  // const authHandler = toNodeHandler(auth);
+  // app.use("/api/auth", authHandler);
 
   app.use("/api", bookingRoutes);
   app.use("/api", listingRoutes);
 
   // app.use("/auth", authRouter);
   // app.use("/items", itemsRouter);
+
+  // Catch-all 404 handler
+  app.use((req, res) => {
+    console.log("No route matched:", req.method, req.url);
+    res.status(404).json({ error: "Not Found", path: req.url });
+  });
 
   return app;
 }
