@@ -10,6 +10,7 @@ type CreateAuthParams = {
 
 export function createAuth({ db, client }: CreateAuthParams) {
   const trustedOrigins = getAllowedOrigins();
+  const isProduction = process.env.NODE_ENV === "production";
 
   return betterAuth({
     database: mongodbAdapter(db, { client }),
@@ -25,6 +26,23 @@ export function createAuth({ db, client }: CreateAuthParams) {
       google: {
         clientId: process.env.GOOGLE_CLIENT_ID as string,
         clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      },
+    },
+    advanced: {
+      useSecureCookies: isProduction,
+      defaultCookieAttributes: {
+        secure: isProduction,
+        sameSite: isProduction ? "none" : "lax",
+        httpOnly: true,
+      },
+      cookies: {
+        state: {
+          attributes: {
+            secure: isProduction,
+            sameSite: isProduction ? "none" : "lax",
+            httpOnly: true,
+          },
+        },
       },
     },
   });

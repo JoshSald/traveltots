@@ -89,7 +89,11 @@ export async function runAuthEndpoint(
       return res.status(204).json({ ok: true });
     }
 
-    (req as any).url = authPath;
+    const originalUrl = req.url ?? "";
+    const queryIndex = originalUrl.indexOf("?");
+    const query = queryIndex >= 0 ? originalUrl.slice(queryIndex) : "";
+
+    (req as any).url = `${authPath}${query}`;
     const handler = await getNodeHandler();
     return handler(req as any, res as any);
   } catch (error) {
