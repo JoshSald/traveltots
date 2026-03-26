@@ -2,13 +2,47 @@
 
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { createRoot } from "react-dom/client";
 import { ListingCard } from "@/components/ListingCard";
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN!;
 
-export default function MapView(props: any) {
+interface Listing {
+  _id: string;
+  title: string;
+  pricePerDay: number;
+  locationName?: string;
+  images?: string[];
+  category?: { image: string; slug: string } | string;
+  location?: { coordinates: [number, number] };
+}
+
+interface ListingCardProps {
+  image: string;
+  title: string;
+  price: number;
+  location: string;
+  rating: number;
+  reviews: number;
+}
+
+interface BoundsData {
+  neLat: number;
+  neLng: number;
+  swLat: number;
+  swLng: number;
+}
+
+interface MapViewProps {
+  listings?: Listing[];
+  onBoundsChange?: (bounds: BoundsData) => void;
+  hoveredId?: string | null;
+  onHoverChange?: (id: string | null) => void;
+  hoveredListing?: Listing | null;
+}
+
+export default function MapView(props: MapViewProps) {
   const {
     listings = [],
     onBoundsChange,
@@ -20,7 +54,50 @@ export default function MapView(props: any) {
   const mapInstance = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
 
-  const mapListingToCard = (listing: any) => {
+  const getThemeColor = useCallback((cssVar: string, fallback: string) => {
+    if (typeof window === "undefined") return fallback;
+    return (
+      getComputedStyle(document.documentElement)
+        .getPropertyValue(cssVar)
+        .trim() || fallback
+    );
+  }, []);
+
+  const applyMapTheme = useCallback(
+    (map: mapboxgl.Map) => {
+      const textPrimary = getThemeColor("--color-text-primary", "#2d3435");
+      const labelHalo = getThemeColor("--color-background", "#f9f9f9");
+
+      try {
+        map.setPaintProperty("water", "fill-color", "#cacaca");
+      } catch {}
+
+      const layers = map.getStyle().layers ?? [];
+      for (const layer of layers) {
+        if (layer.type !== "symbol") continue;
+
+        const id = layer.id.toLowerCase();
+        const isMajorLabel =
+          id.includes("country") ||
+          id.includes("state") ||
+          id.includes("settlement");
+
+        try {
+          map.setPaintProperty(layer.id, "text-color", textPrimary);
+          map.setPaintProperty(layer.id, "text-halo-color", labelHalo);
+          map.setPaintProperty(
+            layer.id,
+            "text-halo-width",
+            isMajorLabel ? 1.2 : 1.0,
+          );
+          map.setPaintProperty(layer.id, "text-halo-blur", 0.4);
+        } catch {}
+      }
+    },
+    [getThemeColor],
+  );
+
+  const mapListingToCard = (listing: Listing): ListingCardProps => {
     const fallbackImages: Record<string, string> = {
       stroller: "TinyTribe/CategoryPlaceholders/stroller",
       carrier: "TinyTribe/CategoryPlaceholders/carrier",
@@ -33,7 +110,7 @@ export default function MapView(props: any) {
       toy: "TinyTribe/CategoryPlaceholders/toy",
     };
 
-    const category: any = listing.category;
+    const category = listing.category;
 
     const categoryImage =
       category && typeof category === "object" ? category.image : null;
@@ -77,20 +154,19 @@ export default function MapView(props: any) {
         const map = mapInstance.current;
         if (!map) return;
 
-        // Slight desaturation & soften
-        map.setPaintProperty("water", "fill-color", "#E8ECEB");
+        applyMapTheme(map);
       });
     }
 
     const map = mapInstance.current;
     if (!map) return;
 
-    const anyMap = map as any;
+    const anyMap = map as unknown as Record<string, boolean>;
     if (!anyMap._boundsListenerAdded && onBoundsChange) {
       anyMap._boundsListenerAdded = true;
 
       let timeout: ReturnType<typeof setTimeout>;
-      let lastBounds: any = null;
+      let lastBounds: BoundsData | null = null;
 
       const triggerFetch = () => {
         const bounds = map.getBounds();
@@ -143,9 +219,10 @@ export default function MapView(props: any) {
     // Track existing markers by listing id
     const existingMarkers = new Map<string, mapboxgl.Marker>();
 
-    markersRef.current.forEach((marker: any) => {
-      if (marker.__listingId) {
-        existingMarkers.set(marker.__listingId, marker);
+    markersRef.current.forEach((marker) => {
+      const markerData = marker as unknown as Record<string, unknown>;
+      if (markerData.__listingId) {
+        existingMarkers.set(markerData.__listingId as string, marker);
       }
     });
 
@@ -153,7 +230,7 @@ export default function MapView(props: any) {
 
     const safeListings = Array.isArray(listings) ? listings : [];
 
-    safeListings.forEach((l: any) => {
+    safeListings.forEach((l: Listing) => {
       const id = l._id;
       const coords = l.location?.coordinates;
 
@@ -167,9 +244,10 @@ export default function MapView(props: any) {
         const existing = existingMarkers.get(id)!;
 
         // Rebind hover events (important for reused markers)
-        const el = (existing as any).__el;
+        const existingData = existing as unknown as Record<string, unknown>;
+        const el = existingData.__el as HTMLElement;
         if (el) {
-          let leaveTimeout: any;
+          let leaveTimeout: ReturnType<typeof setTimeout>;
 
           el.onmouseenter = () => {
             clearTimeout(leaveTimeout);
@@ -226,7 +304,7 @@ export default function MapView(props: any) {
       el.style.cursor = "pointer";
       el.style.display = "inline-block";
 
-      let leaveTimeout: any;
+      let leaveTimeout: ReturnType<typeof setTimeout>;
 
       el.onmouseenter = () => {
         clearTimeout(leaveTimeout);
@@ -247,7 +325,6 @@ export default function MapView(props: any) {
         maximumFractionDigits: 0,
       }).format(price);
 
-      // Removed manual transformOrigin/transform, handled by CSS and Marker offset
       const marker = new mapboxgl.Marker({
         element: el,
         anchor: "bottom",
@@ -256,27 +333,28 @@ export default function MapView(props: any) {
         .setLngLat([lng, lat])
         .addTo(map);
 
-      (marker as any).__listingId = id;
-      (marker as any).__el = el;
+      const markerData = marker as unknown as Record<string, unknown>;
+      markerData.__listingId = id;
+      markerData.__el = el;
 
       newMarkers.push(marker);
     });
 
-    // Remove markers that are no longer in view
     existingMarkers.forEach((marker) => marker.remove());
 
     markersRef.current = newMarkers;
 
     console.log("Total listings:", safeListings.length);
     console.log("Total markers rendered:", markersRef.current.length);
-  }, [listings, onBoundsChange]);
+  }, [applyMapTheme, listings, onBoundsChange, onHoverChange]);
 
   useEffect(() => {
-    markersRef.current.forEach((marker: any) => {
-      const el = marker.__el;
+    markersRef.current.forEach((marker) => {
+      const markerData = marker as unknown as Record<string, unknown>;
+      const el = markerData.__el as HTMLElement;
       if (!el) return;
 
-      if (marker.__listingId === hoveredId) {
+      if (markerData.__listingId === hoveredId) {
         el.style.zIndex = "20";
         el.style.boxShadow = "0 10px 25px rgba(0,0,0,0.2)";
         el.style.filter = "brightness(0.9)";
@@ -293,9 +371,11 @@ export default function MapView(props: any) {
     if (!map) return;
 
     // Remove existing popup if any
-    if ((map as any).__hoverPopup) {
-      (map as any).__hoverPopup.remove();
-      (map as any).__hoverPopup = null;
+    const mapData = map as unknown as Record<string, unknown>;
+    if (mapData.__hoverPopup) {
+      const popup = mapData.__hoverPopup as mapboxgl.Popup;
+      popup.remove();
+      mapData.__hoverPopup = null;
     }
 
     if (!hoveredListing) return;
@@ -326,17 +406,21 @@ export default function MapView(props: any) {
       .setDOMContent(popupNode)
       .addTo(map);
 
-    (map as any).__hoverPopup = popup;
+    mapData.__hoverPopup = popup;
 
     return () => {
-      if ((map as any).__hoverPopup) {
-        (map as any).__hoverPopup.remove();
-        (map as any).__hoverPopup = null;
+      const currentMapData = mapInstance.current as unknown as Record<
+        string,
+        unknown
+      >;
+      if (currentMapData.__hoverPopup) {
+        const currentPopup = currentMapData.__hoverPopup as mapboxgl.Popup;
+        currentPopup.remove();
+        currentMapData.__hoverPopup = null;
       }
     };
   }, [hoveredListing]);
 
-  // Inject Airbnb-style marker CSS once
   if (
     typeof window !== "undefined" &&
     !document.getElementById("price-marker-styles")

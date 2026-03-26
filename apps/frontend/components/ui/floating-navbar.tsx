@@ -24,6 +24,7 @@ import {
   DropdownMenuItem,
   DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu";
+import { buildApiUrl } from "@/lib/api";
 export const FloatingNav = ({
   navItems,
   className,
@@ -47,7 +48,7 @@ export const FloatingNav = ({
 
   const fetchSession = async () => {
     try {
-      const res = await fetch("http://127.0.0.1:5050/api/auth/session", {
+      const res = await fetch(buildApiUrl("/api/auth/session"), {
         credentials: "include",
       });
       if (!res.ok) return null;
@@ -60,7 +61,7 @@ export const FloatingNav = ({
 
   const handleLogout = async () => {
     try {
-      await fetch("http://127.0.0.1:5050/api/auth/sign-out", {
+      await fetch(buildApiUrl("/api/auth/sign-out"), {
         method: "POST",
         credentials: "include",
       });
