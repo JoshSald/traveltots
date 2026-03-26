@@ -1,4 +1,4 @@
-import { Schema, model, Types } from "mongoose";
+import mongoose, { Schema, model, Types } from "mongoose";
 
 export type UserRole = "provider" | "renter";
 
@@ -53,4 +53,6 @@ const userSchema = new Schema<IUser>(
 
 userSchema.index({ location: "2dsphere" });
 
-export const UserModel = model<IUser>("User", userSchema);
+export const UserModel =
+  (mongoose.models.User as mongoose.Model<IUser> | undefined) ||
+  model<IUser>("User", userSchema);

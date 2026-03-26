@@ -1,5 +1,6 @@
 "use client";
 import { CldImage } from "next-cloudinary";
+import Link from "next/link";
 import { DatePickerContainer } from "@/components/datePickerContainer";
 
 export function Hero() {
@@ -19,8 +20,12 @@ export function Hero() {
           </p>
 
           <div className="mt-8 flex gap-4">
-            <button className="btn-primary">Explore Listings</button>
-            <button className="btn-secondary">Become a Host</button>
+            <Link href="/explore" className="btn-primary">
+              Explore Listings
+            </Link>
+            <Link href="/signup" className="btn-secondary">
+              Become a Host
+            </Link>
           </div>
         </div>
 

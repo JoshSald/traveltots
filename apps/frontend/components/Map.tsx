@@ -39,7 +39,11 @@ interface MapViewProps {
   onBoundsChange?: (bounds: BoundsData) => void;
   hoveredId?: string | null;
   onHoverChange?: (id: string | null) => void;
+  onMarkerClick?: (id: string) => void;
+  onMarkerDoubleClick?: (id: string) => void;
   hoveredListing?: Listing | null;
+  focusCenter?: [number, number] | null;
+  focusZoom?: number;
 }
 
 export default function MapView(props: MapViewProps) {
@@ -48,7 +52,11 @@ export default function MapView(props: MapViewProps) {
     onBoundsChange,
     hoveredId,
     onHoverChange,
+    onMarkerClick,
+    onMarkerDoubleClick,
     hoveredListing,
+    focusCenter,
+    focusZoom = 11,
   } = props || {};
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<mapboxgl.Map | null>(null);
@@ -170,7 +178,6 @@ export default function MapView(props: MapViewProps) {
 
       const triggerFetch = () => {
         const bounds = map.getBounds();
-
         if (!bounds) return;
 
         const ne = bounds.getNorthEast();
@@ -205,6 +212,10 @@ export default function MapView(props: MapViewProps) {
       map.on("load", () => {
         triggerFetch();
       });
+
+      if (map.loaded()) {
+        triggerFetch();
+      }
 
       // Fire on movement (debounced)
       map.on("moveend", () => {
@@ -251,13 +262,21 @@ export default function MapView(props: MapViewProps) {
 
           el.onmouseenter = () => {
             clearTimeout(leaveTimeout);
-            console.log("REUSED HOVER ENTER:", id);
             if (onHoverChange) onHoverChange(id);
+          };
+
+          el.onclick = () => {
+            if (onMarkerClick) onMarkerClick(id);
+          };
+
+          el.ondblclick = (event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            if (onMarkerDoubleClick) onMarkerDoubleClick(id);
           };
 
           el.onmouseleave = () => {
             leaveTimeout = setTimeout(() => {
-              console.log("REUSED HOVER LEAVE:", id);
               if (onHoverChange) onHoverChange(null);
             }, 80);
           };
@@ -308,13 +327,21 @@ export default function MapView(props: MapViewProps) {
 
       el.onmouseenter = () => {
         clearTimeout(leaveTimeout);
-        console.log("HOVER ENTER MARKER:", id);
         if (onHoverChange) onHoverChange(id);
+      };
+
+      el.onclick = () => {
+        if (onMarkerClick) onMarkerClick(id);
+      };
+
+      el.ondblclick = (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        if (onMarkerDoubleClick) onMarkerDoubleClick(id);
       };
 
       el.onmouseleave = () => {
         leaveTimeout = setTimeout(() => {
-          console.log("HOVER LEAVE MARKER:", id);
           if (onHoverChange) onHoverChange(null);
         }, 80);
       };
@@ -343,10 +370,25 @@ export default function MapView(props: MapViewProps) {
     existingMarkers.forEach((marker) => marker.remove());
 
     markersRef.current = newMarkers;
+  }, [
+    applyMapTheme,
+    listings,
+    onBoundsChange,
+    onHoverChange,
+    onMarkerClick,
+    onMarkerDoubleClick,
+  ]);
 
-    console.log("Total listings:", safeListings.length);
-    console.log("Total markers rendered:", markersRef.current.length);
-  }, [applyMapTheme, listings, onBoundsChange, onHoverChange]);
+  useEffect(() => {
+    const map = mapInstance.current;
+    if (!map || !focusCenter) return;
+
+    map.flyTo({
+      center: focusCenter,
+      zoom: focusZoom,
+      essential: true,
+    });
+  }, [focusCenter, focusZoom]);
 
   useEffect(() => {
     markersRef.current.forEach((marker) => {

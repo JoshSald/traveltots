@@ -1,41 +1,22 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import { MongoClient } from "mongodb";
 import bookingRoutes from "./routes/booking.routes.js";
 import listingRoutes from "./routes/listing.routes.js";
 import { getAllowedOrigins } from "./lib/allowed-origins.js";
+import { connectDB } from "./db.js";
 
 // import { authRouter } from "./routes/auth.routes.ts";
 // import { itemsRouter } from "./routes/items.routes.ts";
 
-const MONGO_URI = process.env.MONGO_URI || process.env.MONGO_DB_MONGODB_URI;
-
-if (!MONGO_URI) {
-  throw new Error("Mongo URI is not defined");
-}
-
-const client = new MongoClient(MONGO_URI);
-
-let isConnected = false;
-let connecting: Promise<void> | null = null;
-
-async function connectClient() {
-  if (isConnected) return;
-
-  if (!connecting) {
-    connecting = client.connect().then(() => {
-      isConnected = true;
-    });
+export async function createApp() {
+  const mongoUri = process.env.MONGO_URI || process.env.MONGO_DB_MONGODB_URI;
+  if (!mongoUri) {
+    throw new Error("Mongo URI is not defined");
   }
 
-  await connecting;
-}
-
-export async function createApp() {
-  connectClient().catch((err) => {
-    console.error("Mongo connection failed:", err);
-  });
+  // The app uses Mongoose models, so ensure the Mongoose connection is ready.
+  await connectDB(mongoUri);
 
   const app = express();
   app.use((req, res, next) => {
