@@ -13,7 +13,7 @@ export function Navbar() {
     },
     {
       name: "Host",
-      link: "/become-host",
+      link: "/signup",
     },
   ];
   return (
