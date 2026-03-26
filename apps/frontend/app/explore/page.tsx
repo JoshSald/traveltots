@@ -50,6 +50,28 @@ type Listing = {
   location?: { coordinates: [number, number] };
 };
 
+function LoadingDots() {
+  return (
+    <span
+      className="inline-flex items-center gap-1 text-(--color-text-muted)"
+      aria-hidden="true"
+    >
+      <span
+        className="size-1.5 rounded-full bg-current animate-bounce"
+        style={{ animationDelay: "0ms" }}
+      />
+      <span
+        className="size-1.5 rounded-full bg-current animate-bounce"
+        style={{ animationDelay: "120ms" }}
+      />
+      <span
+        className="size-1.5 rounded-full bg-current animate-bounce"
+        style={{ animationDelay: "240ms" }}
+      />
+    </span>
+  );
+}
+
 function getListingId(
   listing: ApiListing | Listing | null | undefined,
 ): string | null {
@@ -113,6 +135,7 @@ export default function ExplorePage() {
 
   const [listings, setListings] = useState<Listing[]>([]);
   const [allListings, setAllListings] = useState<Listing[]>([]);
+  const [isFilterOptionsLoading, setIsFilterOptionsLoading] = useState(true);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [hasFetched, setHasFetched] = useState(false);
@@ -154,8 +177,11 @@ export default function ExplorePage() {
 
   useEffect(() => {
     let isMounted = true;
+    const minimumLoadingMs = 600;
 
     const loadFilterOptions = async () => {
+      const startedAt = Date.now();
+
       try {
         const query = new URLSearchParams({
           neLat: "85",
@@ -184,6 +210,17 @@ export default function ExplorePage() {
         }
       } catch {
         // Filters can still be used even when options cannot be fetched.
+      } finally {
+        const elapsedMs = Date.now() - startedAt;
+        const remainingMs = Math.max(0, minimumLoadingMs - elapsedMs);
+
+        if (remainingMs > 0) {
+          await new Promise((resolve) => setTimeout(resolve, remainingMs));
+        }
+
+        if (isMounted) {
+          setIsFilterOptionsLoading(false);
+        }
       }
     };
 
@@ -242,6 +279,7 @@ export default function ExplorePage() {
   const hoveredListing = Array.isArray(listings)
     ? listings.find((listing) => listing._id === hoveredId)
     : null;
+  const isInitialLoading = !hasFetched;
 
   const locationOptions = useMemo(() => {
     const unique = new Set<string>();
@@ -427,20 +465,37 @@ export default function ExplorePage() {
                 Where
               </p>
               <Select value={location} onValueChange={setLocation}>
-                <SelectTrigger className="h-7 w-full border-0 bg-transparent p-0 text-sm text-(--color-text-primary) shadow-none hover:bg-transparent focus-visible:ring-0">
+                <SelectTrigger className="h-8 w-full rounded-sm border border-(--color-border) bg-(--color-surface-low) px-2 text-sm text-(--color-text-primary) shadow-none hover:bg-(--color-surface-low) focus-visible:ring-0 disabled:cursor-wait disabled:opacity-70">
                   <div className="flex min-w-0 items-center gap-2">
                     <MapPin className="size-4 text-(--color-text-muted)" />
-                    <SelectValue placeholder="Any location" />
+                    {isFilterOptionsLoading ? (
+                      <span className="text-(--color-text-muted)">
+                        Choose location
+                      </span>
+                    ) : (
+                      <SelectValue placeholder="Any location" />
+                    )}
                   </div>
                 </SelectTrigger>
 
                 <SelectContent>
-                  <SelectItem value="all">Any location</SelectItem>
-                  {locationOptions.map((option) => (
-                    <SelectItem key={option} value={option}>
-                      {option}
+                  {isFilterOptionsLoading ? (
+                    <SelectItem value="loading" disabled>
+                      <span className="flex items-center gap-2 text-(--color-text-muted)">
+                        Loading locations...
+                        <LoadingDots />
+                      </span>
                     </SelectItem>
-                  ))}
+                  ) : (
+                    <>
+                      <SelectItem value="all">Any location</SelectItem>
+                      {locationOptions.map((option) => (
+                        <SelectItem key={option} value={option}>
+                          {option}
+                        </SelectItem>
+                      ))}
+                    </>
+                  )}
                 </SelectContent>
               </Select>
             </div>
@@ -453,7 +508,7 @@ export default function ExplorePage() {
                 value={dateRange}
                 onChange={setDateRange}
                 placeholder="Select dates"
-                triggerClassName="h-7 border-0 bg-transparent p-0 text-sm text-(--color-text-primary) shadow-none hover:bg-transparent focus-visible:ring-0"
+                triggerClassName="h-8 rounded-sm border border-(--color-border) bg-(--color-surface-low) px-2 text-sm text-(--color-text-primary) shadow-none hover:bg-(--color-surface-low) focus-visible:ring-0"
               />
             </div>
           </div>
@@ -493,7 +548,7 @@ export default function ExplorePage() {
         <div className="w-105 space-y-4 overflow-y-auto border-r p-4">
           <h2 className="text-xl font-semibold">Premium Gear</h2>
 
-          {isLoading ? (
+          {isLoading || isInitialLoading ? (
             <p className="text-sm text-(--color-text-muted)">
               Loading listings...
             </p>
@@ -510,7 +565,8 @@ export default function ExplorePage() {
             </div>
           ) : null}
 
-          {Array.isArray(listings) &&
+          {!isInitialLoading &&
+            Array.isArray(listings) &&
             listings.map((listing) => {
               const card = mapListingToCard(listing);
 
