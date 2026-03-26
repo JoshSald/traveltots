@@ -4,11 +4,9 @@
   "main": "dist/server.js",
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/server.ts",
     "prebuild": "rm -rf dist",
     "build": "tsc",
     "prestart": "npm run build",
-    "start": "node dist/server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "seed": "tsx src/seed.ts"
   },
@@ -28,8 +26,9 @@
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
-    "mongodb": "^7.0.0",
-    "mongoose": "^9.2.3"
+    "mongodb": "^7.1.1",
+    "mongoose": "^9.2.3",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
@@ -37,7 +36,7 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
-    "@types/node": "^25.3.3",
+    "@types/node": "^25.5.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
   }
