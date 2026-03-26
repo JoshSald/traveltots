@@ -9,15 +9,14 @@ import { connectDB } from "./db.js";
 // import { authRouter } from "./routes/auth.routes.ts";
 // import { itemsRouter } from "./routes/items.routes.ts";
 
-const MONGO_URI = process.env.MONGO_URI || process.env.MONGO_DB_MONGODB_URI;
-
-if (!MONGO_URI) {
-  throw new Error("Mongo URI is not defined");
-}
-
 export async function createApp() {
+  const mongoUri = process.env.MONGO_URI || process.env.MONGO_DB_MONGODB_URI;
+  if (!mongoUri) {
+    throw new Error("Mongo URI is not defined");
+  }
+
   // The app uses Mongoose models, so ensure the Mongoose connection is ready.
-  await connectDB(MONGO_URI);
+  await connectDB(mongoUri);
 
   const app = express();
   app.use((req, res, next) => {
