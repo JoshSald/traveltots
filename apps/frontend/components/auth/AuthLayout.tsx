@@ -24,6 +24,38 @@ export default function AuthLayout({
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
+  const startSocialSignIn = async (provider: "google" | "github") => {
+    try {
+      const callbackURL = `${window.location.origin}/explore`;
+
+      const res = await fetch(buildApiUrl("/api/auth/sign-in/social"), {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          provider,
+          callbackURL,
+          errorCallbackURL: `${window.location.origin}/login`,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data?.url) {
+        window.location.href = data.url;
+        return;
+      }
+
+      console.error(`${provider} sign-in failed`, data);
+      toast.error(`Could not start ${provider} sign-in`);
+    } catch (error) {
+      console.error(`${provider} sign-in network error`, error);
+      toast.error("Social sign-in failed. Please try again.");
+    }
+  };
+
   const getPasswordStrength = () => {
     if (password.length < 6) return "weak";
     if (password.match(/^(?=.*[A-Z])(?=.*[0-9]).{6,}$/)) return "strong";
@@ -146,27 +178,7 @@ export default function AuthLayout({
 
           <div className="grid grid-cols-2 gap-3">
             <button
-              onClick={async () => {
-                const res = await fetch(
-                  buildApiUrl("/api/auth/sign-in/social"),
-                  {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    credentials: "include",
-                    body: JSON.stringify({ provider: "google" }),
-                  },
-                );
-
-                const data = await res.json();
-
-                if (data?.url) {
-                  window.location.href = data.url;
-                } else {
-                  console.error("Google sign-in failed", data);
-                }
-              }}
+              onClick={() => startSocialSignIn("google")}
               className="flex items-center justify-center gap-2 rounded-md border border-gray-200 bg-white hover:bg-gray-50 text-sm py-2 font-medium"
             >
               <FcGoogle size={18} />
@@ -174,27 +186,7 @@ export default function AuthLayout({
             </button>
 
             <button
-              onClick={async () => {
-                const res = await fetch(
-                  buildApiUrl("/api/auth/sign-in/social"),
-                  {
-                    method: "POST",
-                    headers: {
-                      "Content-Type": "application/json",
-                    },
-                    credentials: "include",
-                    body: JSON.stringify({ provider: "github" }),
-                  },
-                );
-
-                const data = await res.json();
-
-                if (data?.url) {
-                  window.location.href = data.url;
-                } else {
-                  console.error("GitHub sign-in failed", data);
-                }
-              }}
+              onClick={() => startSocialSignIn("github")}
               className="flex items-center justify-center gap-2 rounded-md border border-gray-200 bg-white hover:bg-gray-50 text-sm py-2 font-medium"
             >
               <FaGithub size={16} />
