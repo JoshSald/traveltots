@@ -8,7 +8,6 @@ import {
 } from "motion/react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import {
   Dialog,
@@ -39,7 +38,6 @@ export const FloatingNav = ({
   }[];
   className?: string;
 }) => {
-  const searchParams = useSearchParams();
   const { scrollY } = useScroll();
   const [visible, setVisible] = useState(true);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -107,10 +105,11 @@ export const FloatingNav = ({
   };
 
   useEffect(() => {
-    const authStatus = searchParams.get("auth");
+    const params = new URLSearchParams(window.location.search);
+    const authStatus = params.get("auth");
     if (!authStatus) return;
 
-    const provider = searchParams.get("provider") ?? "oauth";
+    const provider = params.get("provider") ?? "oauth";
 
     if (authStatus === "oauth_success") {
       toast.success(`Signed in with ${provider}`);
@@ -124,7 +123,7 @@ export const FloatingNav = ({
     url.searchParams.delete("auth");
     url.searchParams.delete("provider");
     window.history.replaceState({}, "", url.toString());
-  }, [searchParams]);
+  }, []);
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     const heroHeight = window.innerHeight;
