@@ -1,5 +1,6 @@
 import { Listing } from "../models/Listing.js";
 import { CategoryModel } from "../models/Category.js";
+import mongoose from "mongoose";
 
 export async function getNearbyListings(query: any) {
   const { lat, lng, neLat, neLng, swLat, swLng } = query;
@@ -38,4 +39,17 @@ export async function getNearbyListings(query: any) {
   }).populate("category", "name slug image");
 
   return listings;
+}
+
+export async function getListingById(id: string) {
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    return null;
+  }
+
+  const listing = await Listing.findById(id)
+    .populate("category", "name slug image")
+    .populate("ownerId", "name createdAt")
+    .lean();
+
+  return listing;
 }

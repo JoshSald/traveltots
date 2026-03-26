@@ -3,9 +3,15 @@ import { createBooking } from "../services/booking.services.js";
 
 export async function createBookingHandler(req: Request, res: Response) {
   try {
+    const renterId = (req as any).user?.id || req.body?.renterId;
+
+    if (!renterId) {
+      return res.status(401).json({ error: "Please sign in to book" });
+    }
+
     const booking = await createBooking({
       listingId: req.body.listingId,
-      renterId: (req as any).user?.id,
+      renterId,
       startDate: new Date(req.body.startDate),
       endDate: new Date(req.body.endDate),
     });
