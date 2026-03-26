@@ -1,11 +1,6 @@
 "use client";
 import React, { useRef, useState, useEffect } from "react";
-import {
-  motion,
-  AnimatePresence,
-  useScroll,
-  useMotionValueEvent,
-} from "motion/react";
+import { motion, useScroll, useMotionValueEvent } from "motion/react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -27,7 +22,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Spinner } from "@/components/ui/spinner";
 import { buildApiUrl } from "@/lib/api";
-
 export const FloatingNav = ({
   navItems,
   className,
@@ -184,91 +178,87 @@ export const FloatingNav = ({
   }, [isLoggingOut]);
 
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        initial={{
-          opacity: 1,
-          y: -100,
-        }}
-        animate={{
-          y: visible ? 0 : -100,
-          opacity: visible ? 1 : 0,
-        }}
-        transition={{
-          type: "spring",
-          stiffness: 300,
-          damping: 30,
-        }}
-        className={cn("fixed top-0 left-0 w-full z-[5000]", className)}
-      >
-        <div className="w-full bg-[#f9f9f9]/80 backdrop-blur-md border-b border-black/5">
-          <div className="mx-auto flex h-[68px] max-w-[1280px] items-center justify-between px-8">
+    <motion.div
+      initial={false}
+      animate={{
+        y: visible ? 0 : -100,
+        opacity: visible ? 1 : 0,
+      }}
+      transition={{
+        type: "spring",
+        stiffness: 300,
+        damping: 30,
+      }}
+      className={cn("fixed top-0 left-0 w-full z-[5000]", className)}
+    >
+      <div className="w-full bg-[#f9f9f9]/80 backdrop-blur-md border-b border-black/5">
+        <div className="mx-auto flex h-[68px] max-w-[1280px] items-center justify-between px-8">
+          <div className="flex items-center gap-12">
+            <Link
+              href="/"
+              className="text-[24px] font-bold text-[#506358] tracking-tight"
+            >
+              TinyTribe
+            </Link>
             <div className="flex items-center gap-12">
-              <Link
-                href="/"
-                className="text-[24px] font-bold text-[#506358] tracking-tight"
-              >
-                TinyTribe
-              </Link>
-              <div className="flex items-center gap-12">
-                {navItems.map((navItem, idx: number) => (
-                  <a
-                    key={`link-${idx}`}
-                    href={navItem.link}
-                    className="relative text-[12px] font-medium text-[#5A6061] hover:text-[#2D3435] transition after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:w-0 after:bg-[#506358] after:transition-all hover:after:w-full"
-                  >
-                    <span className="block">{navItem.name}</span>
-                  </a>
-                ))}
-              </div>
-            </div>
-            <div className="flex items-center gap-6">
-              {!sessionResolved ? (
-                <button
-                  type="button"
-                  disabled
-                  aria-label="Loading session"
-                  className="rounded-md bg-[#506358] px-5 py-2 text-sm font-semibold text-[#E7FDEE] opacity-90"
+              {navItems.map((navItem, idx: number) => (
+                <Link
+                  key={`link-${idx}`}
+                  href={navItem.link}
+                  className="relative text-[12px] font-medium text-[#5A6061] hover:text-[#2D3435] transition after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:w-0 after:bg-[#506358] after:transition-all hover:after:w-full"
                 >
-                  <span className="flex items-center justify-center">
-                    <Spinner className="size-4" />
-                  </span>
-                </button>
-              ) : user ? (
-                <DropdownMenu modal={false}>
-                  <DropdownMenuTrigger asChild>
-                    <Avatar className="cursor-pointer">
-                      <AvatarImage src="" />
-                      <AvatarFallback>{user.name?.[0] || "U"}</AvatarFallback>
-                    </Avatar>
-                  </DropdownMenuTrigger>
+                  <span className="block">{navItem.name}</span>
+                </Link>
+              ))}
+            </div>
+          </div>
+          <div className="flex items-center gap-6">
+            {!sessionResolved ? (
+              <button
+                type="button"
+                disabled
+                aria-label="Loading session"
+                className="rounded-md bg-[#506358] px-5 py-2 text-sm font-semibold text-[#E7FDEE] opacity-90"
+              >
+                <span className="flex items-center justify-center">
+                  <Spinner className="size-4" />
+                </span>
+              </button>
+            ) : user ? (
+              <DropdownMenu modal={false}>
+                <DropdownMenuTrigger asChild>
+                  <Avatar className="cursor-pointer">
+                    <AvatarImage src="" />
+                    <AvatarFallback>{user.name?.[0] || "U"}</AvatarFallback>
+                  </Avatar>
+                </DropdownMenuTrigger>
 
-                  <DropdownMenuPortal>
-                    <DropdownMenuContent
-                      align="end"
-                      sideOffset={8}
-                      className="z-[9999] min-w-[160px]"
-                    >
-                      <DropdownMenuItem asChild>
-                        <Link href="/dashboard">Dashboard</Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={handleLogout}>
-                        {isLoggingOut ? "Logging out..." : "Logout"}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenuPortal>
-                </DropdownMenu>
-              ) : (
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <button className="rounded-md bg-[#506358] px-5 py-2 text-sm font-semibold text-[#E7FDEE] transition-all hover:bg-[#44574C]">
-                      <span>Login</span>
-                    </button>
-                  </DialogTrigger>
+                <DropdownMenuPortal>
+                  <DropdownMenuContent
+                    align="end"
+                    sideOffset={8}
+                    className="z-[9999] min-w-[160px]"
+                  >
+                    <DropdownMenuItem asChild>
+                      <Link href="/dashboard">Dashboard</Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleLogout}>
+                      {isLoggingOut ? "Logging out..." : "Logout"}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenuPortal>
+              </DropdownMenu>
+            ) : (
+              <Dialog>
+                <DialogTrigger asChild>
+                  <button className="rounded-md bg-[#506358] px-5 py-2 text-sm font-semibold text-[#E7FDEE] transition-all hover:bg-[#44574C]">
+                    <span>Login</span>
+                  </button>
+                </DialogTrigger>
 
-                  <DialogContent
-                    showCloseButton={false}
-                    className="
+                <DialogContent
+                  showCloseButton={false}
+                  className="
                       z-[6000]
                       w-[100vw] md:w-[100vw] lg:w-[90vw]
                       max-w-full
@@ -278,41 +268,37 @@ export const FloatingNav = ({
                       border-none
                       shadow-none
                     "
-                  >
-                    <DialogTitle></DialogTitle>
+                >
+                  <DialogTitle></DialogTitle>
 
-                    <div className="relative backdrop-blur-xl bg-white/60 rounded-xl overflow-hidden">
-                      <DialogClose asChild>
-                        <button
-                          className="
+                  <div className="relative backdrop-blur-xl bg-white/60 rounded-xl overflow-hidden">
+                    <DialogClose asChild>
+                      <button
+                        className="
                             absolute top-4 right-4 z-[10]
                             w-8 h-8 flex items-center justify-center
                             rounded-full bg-white/80 backdrop-blur-md
                             shadow-md
                           "
-                        >
-                          ✕
-                        </button>
-                      </DialogClose>
+                      >
+                        ✕
+                      </button>
+                    </DialogClose>
 
-                      <AuthLayout
-                        formType={mode}
-                        onSuccess={(user: {
-                          name?: string;
-                          email?: string;
-                        }) => {
-                          return setUser(user);
-                        }}
-                        onToggleMode={(newMode) => setMode(newMode)}
-                      />
-                    </div>
-                  </DialogContent>
-                </Dialog>
-              )}
-            </div>
+                    <AuthLayout
+                      formType={mode}
+                      onSuccess={(user: { name?: string; email?: string }) => {
+                        return setUser(user);
+                      }}
+                      onToggleMode={(newMode) => setMode(newMode)}
+                    />
+                  </div>
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
         </div>
-      </motion.div>
-    </AnimatePresence>
+      </div>
+    </motion.div>
   );
 };
