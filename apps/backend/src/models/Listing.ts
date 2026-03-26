@@ -87,5 +87,5 @@ const listingSchema = new Schema<IListing>(
 listingSchema.index({ location: "2dsphere" }); // [web:54][web:67]
 
 export const Listing =
-  (mongoose.models.Listing as ReturnType<typeof model<IListing>> | undefined) ||
+  (mongoose.models.Listing as mongoose.Model<IListing> | undefined) ||
   model<IListing>("Listing", listingSchema);

@@ -54,5 +54,5 @@ const userSchema = new Schema<IUser>(
 userSchema.index({ location: "2dsphere" });
 
 export const UserModel =
-  (mongoose.models.User as ReturnType<typeof model<IUser>> | undefined) ||
+  (mongoose.models.User as mongoose.Model<IUser> | undefined) ||
   model<IUser>("User", userSchema);
