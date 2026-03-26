@@ -26,7 +26,7 @@ export default function AuthLayout({
 
   const startSocialSignIn = async (provider: "google" | "github") => {
     try {
-      const callbackURL = `${window.location.origin}/explore`;
+      const callbackURL = `${window.location.origin}/explore?auth=oauth_success&provider=${provider}`;
 
       const res = await fetch(buildApiUrl("/api/auth/sign-in/social"), {
         method: "POST",
@@ -37,7 +37,7 @@ export default function AuthLayout({
         body: JSON.stringify({
           provider,
           callbackURL,
-          errorCallbackURL: `${window.location.origin}/login`,
+          errorCallbackURL: `${window.location.origin}/login?auth=oauth_error&provider=${provider}`,
         }),
       });
 
