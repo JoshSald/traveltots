@@ -3,28 +3,60 @@
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Field, FieldLabel } from "@/components/ui/field";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { addDays, format } from "date-fns";
+import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { type DateRange } from "react-day-picker";
+import { cn } from "@/lib/utils";
 
-export function DatePicker() {
-  const [date, setDate] = React.useState<DateRange | undefined>(undefined);
+type DatePickerProps = {
+  value?: DateRange;
+  onChange?: (value: DateRange | undefined) => void;
+  triggerClassName?: string;
+  placeholder?: string;
+};
+
+export function DatePicker({
+  value,
+  onChange,
+  triggerClassName,
+  placeholder = "Select dates",
+}: DatePickerProps) {
+  const [internalDate, setInternalDate] = React.useState<DateRange | undefined>(
+    undefined,
+  );
+  const [open, setOpen] = React.useState(false);
+
+  const date = value ?? internalDate;
+
+  const handleDateChange = (next: DateRange | undefined) => {
+    onChange?.(next);
+    if (value === undefined) {
+      setInternalDate(next);
+    }
+
+    // Close once a full range is selected.
+    if (next?.from && next?.to) {
+      setOpen(false);
+    }
+  };
 
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
           variant="outline"
           id="date-picker-range"
-          className="flex w-full items-center gap-3 rounded-lg bg-[var(--color-surface-low)] px-4 h-10 justify-start text-left font-normal hover:bg-[var(--color-surface-low)]"
+          className={cn(
+            "flex h-10 w-full items-center justify-start gap-3 rounded-sm bg-(--color-surface-low) px-4 text-left font-normal hover:bg-(--color-surface-low)",
+            triggerClassName,
+          )}
         >
-          <CalendarIcon className="h-5 w-5 text-[var(--color-text-muted)]" />
+          <CalendarIcon className="h-5 w-5 text-(--color-text-muted)" />
           {date?.from ? (
             date.to ? (
               <>
@@ -35,35 +67,35 @@ export function DatePicker() {
               format(date.from, "LLL dd, y")
             )
           ) : (
-            <span className="text-[var(--color-text-muted)]">Select dates</span>
+            <span className="text-(--color-text-muted)">{placeholder}</span>
           )}
         </Button>
       </PopoverTrigger>
       <PopoverContent
-        className="w-auto p-4 rounded-xl bg-[var(--color-surface)] shadow-[0px_10px_40px_-5px_rgba(45,52,53,0.08)]"
+        className="w-auto rounded-sm bg-(--color-surface) p-4 shadow-[0px_10px_40px_-5px_rgba(45,52,53,0.08)]"
         align="start"
       >
         <Calendar
+          className="[--cell-radius:8px]"
           mode="range"
           defaultMonth={date?.from}
           selected={date}
-          onSelect={setDate}
+          onSelect={handleDateChange}
           numberOfMonths={2}
           classNames={{
-            day_selected:
-              "bg-[var(--color-primary)] text-white hover:bg-[var(--color-primary)]",
-            day_range_start:
-              "bg-[var(--color-primary)] text-white rounded-l-md",
-            day_range_end: "bg-[var(--color-primary)] text-white rounded-r-md",
-            day_range_middle:
-              "bg-[var(--color-accent-light)] text-[var(--color-text-primary)]",
+            range_start:
+              "bg-(--color-accent-light) [&_button]:rounded-l-lg [&_button]:rounded-r-lg [&_button]:bg-(--color-primary) [&_button]:text-white [&_button]:ring-2 [&_button]:ring-(--color-primary-dark) [&_button]:ring-offset-1",
+            range_end:
+              "bg-(--color-accent-light) [&_button]:rounded-l-lg [&_button]:rounded-r-lg [&_button]:bg-(--color-primary) [&_button]:text-white [&_button]:ring-2 [&_button]:ring-(--color-primary-dark) [&_button]:ring-offset-1",
+            range_middle:
+              "bg-(--color-accent-light) [&_button]:bg-(--color-accent-light) [&_button]:text-(--color-text-primary)",
           }}
         />
         <div className="flex justify-end mt-3">
           <button
             type="button"
-            onClick={() => setDate(undefined)}
-            className="text-sm text-[var(--color-text-muted)] hover:text-[var(--color-text-primary)]"
+            onClick={() => handleDateChange(undefined)}
+            className="text-sm text-(--color-text-muted) hover:text-(--color-text-primary)"
           >
             Clear
           </button>
