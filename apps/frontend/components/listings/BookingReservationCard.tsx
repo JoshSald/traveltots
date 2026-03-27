@@ -25,7 +25,7 @@ type SessionResponse = {
 
 async function getSessionUserId(): Promise<string | null> {
   try {
-    const res = await fetch(buildApiUrl("/api/auth/get-session"), {
+    const res = await fetch(buildApiUrl("/api/auth/session"), {
       method: "GET",
       credentials: "include",
     });
