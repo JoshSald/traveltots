@@ -7,6 +7,8 @@ export interface IUser {
   email: string;
   passwordHash: string;
   role: UserRole;
+  isTrustedProvider?: boolean;
+  avatarUrl?: string;
   location?: {
     type: "Point";
     coordinates: [number, number]; // [lng, lat]
@@ -31,6 +33,14 @@ const userSchema = new Schema<IUser>(
       enum: ["provider", "renter"],
       required: true,
       default: "renter",
+    },
+    isTrustedProvider: {
+      type: Boolean,
+      default: false,
+    },
+    avatarUrl: {
+      type: String,
+      default: "",
     },
     location: {
       type: {

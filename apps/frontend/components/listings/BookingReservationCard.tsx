@@ -12,8 +12,8 @@ import { buildApiUrl } from "@/lib/api";
 type BookingReservationCardProps = {
   listingId: string;
   pricePerDay: number;
-  cleaningFee: number;
-  serviceFee: number;
+  cleaningFeeRate: number;
+  serviceFeeRate: number;
 };
 
 type SessionResponse = {
@@ -53,8 +53,8 @@ async function getSessionUserId(): Promise<string | null> {
 export default function BookingReservationCard({
   listingId,
   pricePerDay,
-  cleaningFee,
-  serviceFee,
+  cleaningFeeRate,
+  serviceFeeRate,
 }: BookingReservationCardProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -149,6 +149,8 @@ export default function BookingReservationCard({
   }, [dateRange]);
 
   const subtotal = nights * pricePerDay;
+  const cleaningFee = subtotal * cleaningFeeRate;
+  const serviceFee = subtotal * serviceFeeRate;
   const total = subtotal + cleaningFee + serviceFee;
 
   const formatEuro = (amount: number) =>
@@ -257,11 +259,11 @@ export default function BookingReservationCard({
           <p>{formatEuro(subtotal)}</p>
         </div>
         <div className="flex-between">
-          <p>Cleaning fee</p>
+          <p>Cleaning fee ({Math.round(cleaningFeeRate * 100)}%)</p>
           <p>{formatEuro(cleaningFee)}</p>
         </div>
         <div className="flex-between">
-          <p>TinyTribe service fee</p>
+          <p>TinyTribe service fee ({Math.round(serviceFeeRate * 100)}%)</p>
           <p>{formatEuro(serviceFee)}</p>
         </div>
         <Separator />

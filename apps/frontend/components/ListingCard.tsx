@@ -1,6 +1,6 @@
 "use client";
 
-import { CldImage } from "next-cloudinary";
+import CloudinaryImage from "@/components/CloudinaryImage";
 import { Heart, Star } from "lucide-react";
 
 type ListingCardProps = {
@@ -24,21 +24,13 @@ export function ListingCard({
     <div className="group overflow-hidden rounded-xl border p-0 hover:shadow-md transition-shadow bg-white">
       {/* Image */}
       <div className="relative h-[200px] w-full overflow-hidden">
-        {image.startsWith("http") ? (
-          <img src={image} alt={title} className="h-full w-full object-cover" />
-        ) : (
-          <CldImage
-            src={image}
-            width={400}
-            height={300}
-            crop="fill"
-            gravity="auto"
-            quality="auto"
-            format="auto"
-            alt={title}
-            className="h-full w-full object-cover"
-          />
-        )}
+        <CloudinaryImage
+          src={image}
+          width={400}
+          height={300}
+          alt={title}
+          className="h-full w-full object-cover"
+        />
 
         {/* Heart */}
         <button className="absolute top-3 right-3 h-9 w-9 rounded-full bg-white/90 flex items-center justify-center shadow-sm hover:bg-white">

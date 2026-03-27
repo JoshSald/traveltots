@@ -41,8 +41,8 @@ export function DatePicker({
       setInternalDate(next);
     }
 
-    // Close once a full range is selected.
-    if (next?.from && next?.to) {
+    // Close once a valid multi-day range is selected.
+    if (next?.from && next?.to && next.from.getTime() !== next.to.getTime()) {
       setOpen(false);
     }
   };
@@ -80,6 +80,7 @@ export function DatePicker({
         <Calendar
           className="[--cell-radius:8px]"
           mode="range"
+          min={1}
           defaultMonth={date?.from}
           selected={date}
           onSelect={handleDateChange}
@@ -87,11 +88,11 @@ export function DatePicker({
           numberOfMonths={2}
           classNames={{
             range_start:
-              "bg-(--color-accent-light) [&_button]:rounded-l-lg [&_button]:rounded-r-lg [&_button]:bg-(--color-primary) [&_button]:text-white [&_button]:ring-2 [&_button]:ring-(--color-primary-dark) [&_button]:ring-offset-1",
+              "bg-(--color-accent-light) [&_button]:rounded-l-lg [&_button]:rounded-r-none [&_button]:bg-(--color-primary) [&_button]:text-white [&_button]:ring-2 [&_button]:ring-(--color-primary-dark) [&_button]:ring-offset-1",
             range_end:
-              "bg-(--color-accent-light) [&_button]:rounded-l-lg [&_button]:rounded-r-lg [&_button]:bg-(--color-primary) [&_button]:text-white [&_button]:ring-2 [&_button]:ring-(--color-primary-dark) [&_button]:ring-offset-1",
+              "bg-(--color-accent-light) [&_button]:rounded-l-none [&_button]:rounded-r-lg [&_button]:bg-(--color-primary) [&_button]:text-white [&_button]:ring-2 [&_button]:ring-(--color-primary-dark) [&_button]:ring-offset-1",
             range_middle:
-              "bg-(--color-accent-light) [&_button]:bg-(--color-accent-light) [&_button]:text-(--color-text-primary)",
+              "bg-(--color-accent-light) rounded-none [&_button]:rounded-none [&_button]:bg-(--color-accent-light) [&_button]:text-(--color-text-primary)",
           }}
         />
         <div className="flex justify-end mt-3">
