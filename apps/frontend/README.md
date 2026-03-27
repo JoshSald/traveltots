@@ -20,6 +20,7 @@ NEXT_PUBLIC_API_URL=http://localhost:3000
 NEXT_PUBLIC_MAPBOX_TOKEN=your_mapbox_token
 NEXT_PUBLIC_UNSPLASH_KEY=your_unsplash_key
 NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloudinary_name
+NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=your_unsigned_upload_preset
 ```
 
 Notes:
@@ -54,6 +55,7 @@ NEXT_PUBLIC_API_URL=https://traveltots-backend.vercel.app
 NEXT_PUBLIC_MAPBOX_TOKEN=...
 NEXT_PUBLIC_UNSPLASH_KEY=...
 NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=...
+NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=...
 ```
 
 ## Auth UX Notes
