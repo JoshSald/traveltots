@@ -361,7 +361,7 @@ export async function getListingById(id: string) {
       ? await collection.findOne({ _id: new mongoose.Types.ObjectId(ownerId) })
       : null;
 
-    const byStringId = await collection.findOne({ _id: ownerId });
+    const byStringId = await collection.findOne({ _id: ownerId as any });
 
     authUser = byObjectId || byStringId;
     if (authUser) {

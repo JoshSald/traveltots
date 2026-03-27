@@ -498,7 +498,7 @@ function formatEuro(amount: number) {
   }).format(amount);
 }
 
-function getHostName(owner: ApiListing["ownerId"]): string {
+function getHostName(owner: ApiListing["ownerId"] | null | undefined): string {
   if (!owner || typeof owner !== "object") {
     return "Tribe Member";
   }
