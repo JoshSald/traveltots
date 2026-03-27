@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import {
   Dialog,
   DialogTitle,
+  DialogDescription,
   DialogContent,
   DialogTrigger,
   DialogClose,
@@ -269,7 +270,10 @@ export const FloatingNav = ({
                       shadow-none
                     "
                 >
-                  <DialogTitle></DialogTitle>
+                  <DialogTitle className="sr-only">Authentication</DialogTitle>
+                  <DialogDescription className="sr-only">
+                    Sign in or create an account to access your dashboard.
+                  </DialogDescription>
 
                   <div className="relative backdrop-blur-xl bg-white/60 rounded-xl overflow-hidden">
                     <DialogClose asChild>
