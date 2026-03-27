@@ -292,6 +292,28 @@ export async function getNearbyListings(query: any) {
   return listings;
 }
 
+export async function getFeaturedListings(limitInput?: unknown) {
+  const parsedLimit = Number(limitInput);
+  const limit = Number.isFinite(parsedLimit)
+    ? Math.max(1, Math.min(12, parsedLimit))
+    : 4;
+
+  const listings = await Listing.aggregate([
+    { $match: { title: { $exists: true, $ne: "" } } },
+    { $sample: { size: limit } },
+    {
+      $project: {
+        title: 1,
+        pricePerDay: 1,
+        locationName: 1,
+        images: 1,
+      },
+    },
+  ]);
+
+  return listings;
+}
+
 export async function getListingById(id: string) {
   if (!mongoose.Types.ObjectId.isValid(id)) {
     return null;
