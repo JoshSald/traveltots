@@ -200,7 +200,7 @@ function NewListingPageContent() {
   };
 
   const getSessionUserId = async (): Promise<string | null> => {
-    const endpoints = ["/api/auth/session", "/api/auth/get-session"];
+    const endpoints = ["/api/auth/session"];
 
     for (const endpoint of endpoints) {
       try {
