@@ -11,7 +11,8 @@
     "dev": "tsx watch src/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "seed": "tsx src/seed.ts",
-    "enrich:shop": "tsx src/enrich-shop.ts"
+    "enrich:shop": "tsx src/enrich-shop.ts",
+    "enrich:images": "tsx src/enrich-shop.ts"
   },
   "keywords": [],
   "author": "",

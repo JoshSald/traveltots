@@ -421,8 +421,15 @@ export default function ExplorePage() {
         ? categoryValue.slug
         : null;
 
+    const listingImage = Array.isArray(listing.images)
+      ? listing.images.find(
+          (image): image is string =>
+            typeof image === "string" && image.trim().length > 0,
+        )
+      : undefined;
+
     const image =
-      listing.images?.[0] ||
+      listingImage ||
       categoryImage ||
       (categorySlug ? fallbackImages[categorySlug] : null) ||
       fallbackImages.stroller;

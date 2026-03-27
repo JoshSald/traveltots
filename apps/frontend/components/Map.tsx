@@ -126,10 +126,12 @@ export default function MapView(props: MapViewProps) {
     const categorySlug =
       category && typeof category === "object" ? category.slug : null;
 
-    const validListingImage =
-      listing.images?.[0] && listing.images[0].trim() !== ""
-        ? listing.images[0]
-        : null;
+    const validListingImage = Array.isArray(listing.images)
+      ? (listing.images.find(
+          (image): image is string =>
+            typeof image === "string" && image.trim().length > 0,
+        ) ?? null)
+      : null;
 
     const image =
       validListingImage ||

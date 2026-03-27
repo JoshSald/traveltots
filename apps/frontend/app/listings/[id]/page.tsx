@@ -38,8 +38,8 @@ type ListingDetail = {
   hostMeta: string;
   pricePerDay: number;
   nights: number;
-  cleaningFee: number;
-  serviceFee: number;
+  cleaningFeeRate: number;
+  serviceFeeRate: number;
   deliveryNote: string;
   images: [string, string, string];
   about: string;
@@ -69,6 +69,13 @@ type ApiListing = {
     | {
         _id?: string;
         name?: string;
+        username?: string;
+        firstName?: string;
+        lastName?: string;
+        fullName?: string;
+        email?: string;
+        isTrustedProvider?: boolean;
+        avatarUrl?: string;
         createdAt?: string;
       };
   category?: ApiCategory | string;
@@ -99,8 +106,8 @@ const fallbackListing: ListingDetail = {
   hostMeta: "Superhost • Verified Parent • Member since 2021",
   pricePerDay: 25,
   nights: 4,
-  cleaningFee: 15,
-  serviceFee: 12.5,
+  cleaningFeeRate: 0.08,
+  serviceFeeRate: 0.1,
   deliveryNote: "Doorstep delivery available in Manhattan",
   images: [
     "TinyTribe/listings/vista-hero",
@@ -462,11 +469,22 @@ function selectRandomImages(
   return [unique[0], unique[1], unique[2]];
 }
 
-function getMemberSinceLabel(ownerCreatedAt?: string) {
-  if (!ownerCreatedAt) return "Trusted provider";
+function getMemberSinceLabel(
+  ownerCreatedAt?: string,
+  isTrustedProvider?: boolean,
+) {
+  if (!ownerCreatedAt) {
+    return isTrustedProvider ? "Trusted Provider" : "Tribe Member";
+  }
 
   const parsed = new Date(ownerCreatedAt);
-  if (Number.isNaN(parsed.getTime())) return "Trusted provider";
+  if (Number.isNaN(parsed.getTime())) {
+    return isTrustedProvider ? "Trusted Provider" : "Tribe Member";
+  }
+
+  if (isTrustedProvider) {
+    return `Trusted Provider • Member since ${parsed.getFullYear()}`;
+  }
 
   return `Member since ${parsed.getFullYear()}`;
 }
@@ -478,6 +496,26 @@ function formatEuro(amount: number) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(amount);
+}
+
+function getHostName(owner: ApiListing["ownerId"] | null | undefined): string {
+  if (!owner || typeof owner !== "object") {
+    return "Tribe Member";
+  }
+
+  const candidates = [
+    owner.name,
+    owner.username,
+    owner.fullName,
+    [owner.firstName, owner.lastName].filter(Boolean).join(" "),
+    owner.email?.split("@")[0],
+  ];
+
+  const resolved = candidates
+    .map((candidate) => (typeof candidate === "string" ? candidate.trim() : ""))
+    .find(Boolean);
+
+  return resolved || "Tribe Member";
 }
 
 function normalizeListingData(
@@ -511,7 +549,7 @@ function normalizeListingData(
     listing.ownerId && typeof listing.ownerId === "object"
       ? listing.ownerId
       : null;
-  const hostName = owner?.name || "Trusted provider";
+  const hostName = getHostName(owner);
   const listingFeatures = Array.isArray(listing.features)
     ? listing.features.filter((item): item is string =>
         Boolean(item && item.trim()),
@@ -537,12 +575,15 @@ function normalizeListingData(
     reviews: 0,
     hasReviewData: false,
     hostName,
-    hostAvatar: fallbackListing.hostAvatar,
-    hostMeta: getMemberSinceLabel(owner?.createdAt),
+    hostAvatar:
+      typeof owner?.avatarUrl === "string" && owner.avatarUrl.trim().length > 0
+        ? owner.avatarUrl
+        : fallbackListing.hostAvatar,
+    hostMeta: getMemberSinceLabel(owner?.createdAt, owner?.isTrustedProvider),
     pricePerDay: listing.pricePerDay || fallbackListing.pricePerDay,
     nights: 1,
-    cleaningFee: 0,
-    serviceFee: 0,
+    cleaningFeeRate: 0.08,
+    serviceFeeRate: 0.1,
     deliveryNote: "Delivery options vary by host and location.",
     images: [hero, secondary, tertiary],
     about:
@@ -616,10 +657,7 @@ export default async function ListingDetailPage({
     );
   }
 
-  const shopQuery = buildShopQuery(apiListing);
-  const externalData = await fetchShopCatalogData(shopQuery);
-
-  const listing = normalizeListingData(apiListing, externalData);
+  const listing = normalizeListingData(apiListing, null);
   const hostAvatarImage = toImageUrl(listing.hostAvatar, 160, 160);
 
   return (
@@ -817,8 +855,8 @@ export default async function ListingDetailPage({
             <BookingReservationCard
               listingId={id}
               pricePerDay={listing.pricePerDay}
-              cleaningFee={listing.cleaningFee}
-              serviceFee={listing.serviceFee}
+              cleaningFeeRate={listing.cleaningFeeRate}
+              serviceFeeRate={listing.serviceFeeRate}
             />
           </Card>
 

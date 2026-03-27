@@ -2,6 +2,7 @@
 import { CldImage } from "next-cloudinary";
 import Link from "next/link";
 import { DatePickerContainer } from "@/components/datePickerContainer";
+import { HostActionLink } from "@/components/home/HostActionLink";
 
 export function Hero() {
   return (
@@ -23,9 +24,9 @@ export function Hero() {
             <Link href="/explore" className="btn-primary">
               Explore Listings
             </Link>
-            <Link href="/signup" className="btn-secondary">
+            <HostActionLink className="btn-secondary">
               Become a Host
-            </Link>
+            </HostActionLink>
           </div>
         </div>
 

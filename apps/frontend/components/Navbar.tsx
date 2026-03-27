@@ -9,7 +9,7 @@ export function Navbar() {
     },
     {
       name: "How It Works",
-      link: "/how-it-works",
+      link: "/#trust-heritage",
     },
     {
       name: "Host",

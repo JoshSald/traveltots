@@ -6,12 +6,21 @@ import { fromNodeHeaders } from "better-auth/node";
 import { connectDB } from "../../src/db.js";
 import { getAllowedOrigins } from "../../src/lib/allowed-origins.js";
 import { getAuth } from "../../src/lib/auth.js";
-import { createListing } from "../../src/controllers/listing.controller.js";
+import {
+  createListing,
+  getFeaturedListings,
+} from "../../src/controllers/listing.controller.js";
 import { UserModel } from "../../src/models/User.js";
+import { z } from "zod";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 config({ path: join(__dirname, "../../.env.local") });
+
+const querySchema = z.object({
+  featured: z.string().optional(),
+  limit: z.string().optional(),
+});
 
 function applyCorsHeaders(req: any, res: any) {
   const origin = req.headers.origin;
@@ -79,7 +88,7 @@ export default async function handler(req: any, res: any) {
       return res.status(204).end();
     }
 
-    if (req.method !== "POST") {
+    if (!["GET", "POST"].includes(req.method)) {
       return res.status(405).json({ error: "Method Not Allowed" });
     }
 
@@ -93,6 +102,26 @@ export default async function handler(req: any, res: any) {
     }
 
     await connectDB(MONGO_URI);
+
+    if (req.method === "GET") {
+      const parsed = querySchema.safeParse(req.query);
+      if (!parsed.success) {
+        return res.status(400).json({
+          error: "Invalid query params",
+          details: parsed.error.flatten(),
+        });
+      }
+
+      const featuredFlag = String(parsed.data.featured || "").toLowerCase();
+      if (!["1", "true", "yes"].includes(featuredFlag)) {
+        return res.status(400).json({
+          error: "Unsupported GET mode. Use ?featured=1 for featured listings.",
+        });
+      }
+
+      const data = await getFeaturedListings(parsed.data.limit);
+      return res.status(200).json(data);
+    }
 
     const ownerId = await resolveOwnerId(req);
     if (!ownerId) {
