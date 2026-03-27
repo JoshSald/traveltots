@@ -10,7 +10,10 @@ import { connectDB } from "./db.js";
 // import { itemsRouter } from "./routes/items.routes.ts";
 
 export async function createApp() {
-  const mongoUri = process.env.MONGO_URI || process.env.MONGO_DB_MONGODB_URI;
+  const mongoUri =
+    process.env.MONGODB_URI ||
+    process.env.MONGO_URI ||
+    process.env.MONGO_DB_MONGODB_URI;
   if (!mongoUri) {
     throw new Error("Mongo URI is not defined");
   }
@@ -19,10 +22,14 @@ export async function createApp() {
   await connectDB(mongoUri);
 
   const app = express();
-  app.use((req, res, next) => {
-    console.log("Incoming:", req.method, req.url);
-    next();
-  });
+  const isProduction = process.env.NODE_ENV === "production";
+
+  if (!isProduction) {
+    app.use((req, _res, next) => {
+      console.log("Incoming:", req.method, req.url);
+      next();
+    });
+  }
 
   app.use(
     cors({
@@ -39,10 +46,12 @@ export async function createApp() {
     res.json({ ok: true });
   });
 
-  // Debug route to echo the path
-  app.get("/api/debug", (req, res) => {
-    res.json({ path: req.url, originalUrl: req.originalUrl });
-  });
+  if (!isProduction) {
+    // Debug route to echo the path
+    app.get("/api/debug", (req, res) => {
+      res.json({ path: req.url, originalUrl: req.originalUrl });
+    });
+  }
 
   // const authHandler = toNodeHandler(auth);
   // app.use("/api/auth", authHandler);
@@ -55,7 +64,9 @@ export async function createApp() {
 
   // Catch-all 404 handler
   app.use((req, res) => {
-    console.log("No route matched:", req.method, req.url);
+    if (!isProduction) {
+      console.log("No route matched:", req.method, req.url);
+    }
     res.status(404).json({ error: "Not Found", path: req.url });
   });
 

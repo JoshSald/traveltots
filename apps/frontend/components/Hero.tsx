@@ -36,6 +36,7 @@ export function Hero() {
           <CldImage
             width={576}
             height={700}
+            loading="eager"
             className="relative rounded-xl object-cover"
             src="https://res.cloudinary.com/josh-cloud/image/upload/v1774280147/TinyTribe/Homepage/df813ad3-b2dd-406a-8a08-19720f8a927c.png"
             alt="Kids gear"

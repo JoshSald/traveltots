@@ -125,6 +125,78 @@ In Google Cloud Console for your OAuth client:
 
 ## Vercel Deployment
 
+Deploy as two separate Vercel projects from this monorepo:
+
+- Project 1 (frontend): root directory `apps/frontend`
+- Project 2 (backend): root directory `apps/backend`
+
+This avoids mixed runtimes and keeps `/api` ownership explicit.
+
+### 1) Frontend Project Settings
+
+- Framework preset: Next.js
+- Root Directory: `apps/frontend`
+- Build Command: `npm run build`
+- Install Command: `npm install`
+
+Frontend environment variables:
+
+```env
+NEXT_PUBLIC_API_URL=https://<your-backend-project>.vercel.app
+NEXT_PUBLIC_MAPBOX_TOKEN=...
+NEXT_PUBLIC_UNSPLASH_KEY=...
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=...
+NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET=...
+```
+
+### 2) Backend Project Settings
+
+- Framework preset: Other
+- Root Directory: `apps/backend`
+- Install Command: `npm install`
+
+Backend environment variables:
+
+```env
+BETTER_AUTH_URL=https://<your-backend-project>.vercel.app
+FRONTEND_URL=https://<your-frontend-project>.vercel.app
+CORS_ORIGINS=https://<your-frontend-project>.vercel.app
+
+BETTER_AUTH_SECRET=...
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+
+MONGODB_URI=...
+MONGO_DB_MONGODB_URI=...
+```
+
+### 3) OAuth And Cookie Safety
+
+- In Google OAuth, include both preview and production callback URLs.
+- Keep auth callbacks on backend domain: `/api/auth/callback/google`.
+- Ensure frontend uses `credentials: include` for auth/session and protected endpoints.
+
+### 4) Route Safety Checks (After Every Deploy)
+
+Verify these return expected statuses:
+
+- `GET https://<backend>/api/health` => 200
+- `GET https://<backend>/api/auth/session` => 200 or 401
+- `GET https://<backend>/api/dashboard/me` => 200 or 401
+- `POST https://<backend>/api/listings` => 401 when signed out
+
+If any of these return 404, check project root directory and redeploy.
+
+### 5) Preview Environment Rule
+
+Set the same required env vars for all Vercel environments:
+
+- Development
+- Preview
+- Production
+
+Missing Preview env vars are the most common cause of "works locally but not on Vercel" failures.
+
 Frontend project environment variables:
 
 ```env
