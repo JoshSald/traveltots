@@ -46,6 +46,7 @@
 
 @layer base {
   html {
+    scroll-behavior: smooth;
     font-family:
       var(--font-inter),
       ui-sans-serif,
