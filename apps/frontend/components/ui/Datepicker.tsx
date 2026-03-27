@@ -10,12 +10,13 @@ import {
 } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
-import { type DateRange } from "react-day-picker";
+import { type DateRange, type Matcher } from "react-day-picker";
 import { cn } from "@/lib/utils";
 
 type DatePickerProps = {
   value?: DateRange;
   onChange?: (value: DateRange | undefined) => void;
+  disabled?: Matcher | Matcher[];
   triggerClassName?: string;
   placeholder?: string;
 };
@@ -23,6 +24,7 @@ type DatePickerProps = {
 export function DatePicker({
   value,
   onChange,
+  disabled,
   triggerClassName,
   placeholder = "Select dates",
 }: DatePickerProps) {
@@ -81,6 +83,7 @@ export function DatePicker({
           defaultMonth={date?.from}
           selected={date}
           onSelect={handleDateChange}
+          disabled={disabled}
           numberOfMonths={2}
           classNames={{
             range_start:

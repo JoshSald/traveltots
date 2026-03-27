@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { differenceInCalendarDays } from "date-fns";
-import { type DateRange } from "react-day-picker";
+import { differenceInCalendarDays, startOfDay, subDays } from "date-fns";
+import { type DateRange, type Matcher } from "react-day-picker";
 import { DatePicker } from "@/components/ui/Datepicker";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -21,6 +21,16 @@ type SessionResponse = {
     id?: string;
     _id?: string;
   };
+};
+
+type BlockedDateRange = {
+  startDate: string;
+  endDate: string;
+  status: "requested" | "confirmed" | "completed" | "cancelled";
+};
+
+type BlockedDatesResponse = {
+  blockedDates?: BlockedDateRange[];
 };
 
 async function getSessionUserId(): Promise<string | null> {
@@ -53,6 +63,85 @@ export default function BookingReservationCard({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [blockedRanges, setBlockedRanges] = useState<DateRange[]>([]);
+  const [isBlockedDatesLoading, setIsBlockedDatesLoading] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadBlockedDates = async () => {
+      setIsBlockedDatesLoading(true);
+
+      try {
+        const url = buildApiUrl(
+          `/api/bookings?listingId=${encodeURIComponent(listingId)}`,
+        );
+
+        const res = await fetch(url, {
+          method: "GET",
+          credentials: "include",
+          cache: "no-store",
+        });
+
+        if (!res.ok) {
+          if (isMounted) {
+            setBlockedRanges([]);
+          }
+          return;
+        }
+
+        const data = (await res.json()) as BlockedDatesResponse;
+        const ranges = Array.isArray(data.blockedDates)
+          ? data.blockedDates
+              .map((entry) => {
+                const start = startOfDay(new Date(entry.startDate));
+                const end = startOfDay(subDays(new Date(entry.endDate), 1));
+
+                if (
+                  Number.isNaN(start.getTime()) ||
+                  Number.isNaN(end.getTime())
+                ) {
+                  return null;
+                }
+
+                if (end < start) {
+                  return null;
+                }
+
+                return { from: start, to: end } as DateRange;
+              })
+              .filter((range): range is DateRange => Boolean(range))
+          : [];
+
+        if (isMounted) {
+          setBlockedRanges(ranges);
+        }
+      } catch {
+        if (isMounted) {
+          setBlockedRanges([]);
+        }
+      } finally {
+        if (isMounted) {
+          setIsBlockedDatesLoading(false);
+        }
+      }
+    };
+
+    loadBlockedDates();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [listingId]);
+
+  const disabledDays = useMemo<Matcher[]>(() => {
+    return [
+      {
+        before: startOfDay(new Date()),
+      },
+      ...blockedRanges,
+    ];
+  }, [blockedRanges]);
 
   const nights = useMemo(() => {
     if (!dateRange?.from || !dateRange?.to) return 0;
@@ -125,7 +214,21 @@ export default function BookingReservationCard({
 
   return (
     <div className="stack-md p-5 pt-1">
-      <DatePicker value={dateRange} onChange={setDateRange} />
+      <DatePicker
+        value={dateRange}
+        onChange={setDateRange}
+        disabled={disabledDays}
+      />
+
+      {isBlockedDatesLoading ? (
+        <p className="text-xs text-(--color-text-muted)">
+          Checking availability...
+        </p>
+      ) : blockedRanges.length > 0 ? (
+        <p className="text-xs text-(--color-text-muted)">
+          Booked dates are blocked on the calendar.
+        </p>
+      ) : null}
 
       <Button
         onClick={handleReserve}
