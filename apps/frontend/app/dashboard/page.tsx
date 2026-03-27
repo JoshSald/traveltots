@@ -249,6 +249,13 @@ export default function DashboardPage() {
     "hosting",
   );
 
+  useEffect(() => {
+    const tab = new URLSearchParams(window.location.search).get("tab");
+    if (tab === "borrowing" || tab === "hosting") {
+      setActiveTab(tab);
+    }
+  }, []);
+
   const handleDeleteListing = async (listingId: string) => {
     const confirmed = window.confirm(
       "Delete this listing? This action cannot be undone.",

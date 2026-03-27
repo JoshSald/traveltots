@@ -3,6 +3,7 @@ import { Types } from "mongoose";
 import {
   createListing,
   deleteListingById,
+  getFeaturedListings,
   getListingFormOptions,
   getListingById,
   getNearbyListings,
@@ -109,6 +110,17 @@ router.get("/listings/near", async (req, res) => {
   } catch (error) {
     return res.status(400).json({
       error: (error as Error)?.message || "Unable to fetch nearby listings",
+    });
+  }
+});
+
+router.get("/listings/featured", async (req, res) => {
+  try {
+    const data = await getFeaturedListings(req.query.limit);
+    return res.status(200).json(data);
+  } catch (error) {
+    return res.status(500).json({
+      error: (error as Error)?.message || "Unable to fetch featured listings",
     });
   }
 });

@@ -202,15 +202,22 @@ export const FloatingNav = ({
               TinyTribe
             </Link>
             <div className="flex items-center gap-12">
-              {navItems.map((navItem, idx: number) => (
-                <Link
-                  key={`link-${idx}`}
-                  href={navItem.link}
-                  className="relative text-[12px] font-medium text-[#5A6061] hover:text-[#2D3435] transition after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:w-0 after:bg-[#506358] after:transition-all hover:after:w-full"
-                >
-                  <span className="block">{navItem.name}</span>
-                </Link>
-              ))}
+              {navItems.map((navItem, idx: number) => {
+                const href =
+                  navItem.name === "Host" && user
+                    ? "/dashboard?tab=hosting"
+                    : navItem.link;
+
+                return (
+                  <Link
+                    key={`link-${idx}`}
+                    href={href}
+                    className="relative text-[12px] font-medium text-[#5A6061] hover:text-[#2D3435] transition after:absolute after:-bottom-1 after:left-0 after:h-[2px] after:w-0 after:bg-[#506358] after:transition-all hover:after:w-full"
+                  >
+                    <span className="block">{navItem.name}</span>
+                  </Link>
+                );
+              })}
             </div>
           </div>
           <div className="flex items-center gap-6">
