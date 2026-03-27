@@ -65,3 +65,23 @@ export async function createBooking({
 
   return booking;
 }
+
+export async function getBlockedBookingRanges(listingId: string) {
+  if (!Types.ObjectId.isValid(listingId)) {
+    throw new Error("Invalid listing id");
+  }
+
+  const bookings = await Booking.find({
+    listingId: new Types.ObjectId(listingId),
+    status: { $in: ["requested", "confirmed"] },
+  })
+    .sort({ startDate: 1 })
+    .select("startDate endDate status")
+    .lean();
+
+  return bookings.map((booking) => ({
+    startDate: booking.startDate,
+    endDate: booking.endDate,
+    status: booking.status,
+  }));
+}

@@ -299,8 +299,121 @@ export async function getListingById(id: string) {
 
   const listing = await Listing.findById(id)
     .populate("category", "name slug image")
-    .populate("ownerId", "name createdAt")
+    .populate("ownerId", "name createdAt isTrustedProvider avatarUrl")
     .lean();
+
+  if (!listing) {
+    return null;
+  }
+
+  const owner = listing.ownerId as
+    | string
+    | {
+        _id?: unknown;
+        name?: string;
+        username?: string;
+        fullName?: string;
+        firstName?: string;
+        lastName?: string;
+        email?: string;
+        isTrustedProvider?: boolean;
+        avatarUrl?: string;
+        createdAt?: string | Date;
+        toString?: () => string;
+      }
+    | undefined;
+
+  const hasOwnerName =
+    typeof owner === "object" &&
+    owner !== null &&
+    typeof owner.name === "string" &&
+    owner.name.trim().length > 0;
+
+  if (hasOwnerName) {
+    return listing;
+  }
+
+  const ownerId =
+    typeof owner === "string"
+      ? owner
+      : owner?._id
+        ? String(owner._id)
+        : owner?.toString
+          ? owner.toString()
+          : "";
+
+  if (!ownerId) {
+    return listing;
+  }
+
+  const db = mongoose.connection.db;
+  if (!db) {
+    return listing;
+  }
+
+  const collectionNames = ["user", "users"];
+  let authUser: Record<string, unknown> | null = null;
+
+  for (const collectionName of collectionNames) {
+    const collection = db.collection(collectionName);
+
+    const byObjectId = mongoose.Types.ObjectId.isValid(ownerId)
+      ? await collection.findOne({ _id: new mongoose.Types.ObjectId(ownerId) })
+      : null;
+
+    const byStringId = await collection.findOne({ _id: ownerId as any });
+
+    authUser = byObjectId || byStringId;
+    if (authUser) {
+      break;
+    }
+  }
+
+  if (!authUser) {
+    return listing;
+  }
+
+  const normalizedName = [
+    typeof authUser.name === "string" ? authUser.name : "",
+    typeof authUser.username === "string" ? authUser.username : "",
+    typeof authUser.fullName === "string" ? authUser.fullName : "",
+    [authUser.firstName, authUser.lastName]
+      .map((value) => (typeof value === "string" ? value : ""))
+      .filter(Boolean)
+      .join(" "),
+    typeof authUser.email === "string" ? authUser.email.split("@")[0] : "",
+  ]
+    .map((value) => value.trim())
+    .find(Boolean);
+
+  listing.ownerId = {
+    _id: ownerId,
+    name: normalizedName,
+    username:
+      typeof authUser.username === "string" ? authUser.username : undefined,
+    fullName:
+      typeof authUser.fullName === "string" ? authUser.fullName : undefined,
+    firstName:
+      typeof authUser.firstName === "string" ? authUser.firstName : undefined,
+    lastName:
+      typeof authUser.lastName === "string" ? authUser.lastName : undefined,
+    email: typeof authUser.email === "string" ? authUser.email : undefined,
+    isTrustedProvider:
+      typeof authUser.isTrustedProvider === "boolean"
+        ? authUser.isTrustedProvider
+        : false,
+    avatarUrl:
+      typeof authUser.avatarUrl === "string"
+        ? authUser.avatarUrl
+        : typeof authUser.image === "string"
+          ? authUser.image
+          : undefined,
+    createdAt:
+      authUser.createdAt instanceof Date ||
+      typeof authUser.createdAt === "string"
+        ? authUser.createdAt
+        : undefined,
+  } as any;
 
   return listing;
 }

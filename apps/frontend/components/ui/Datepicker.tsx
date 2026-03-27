@@ -10,12 +10,13 @@ import {
 } from "@/components/ui/popover";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
-import { type DateRange } from "react-day-picker";
+import { type DateRange, type Matcher } from "react-day-picker";
 import { cn } from "@/lib/utils";
 
 type DatePickerProps = {
   value?: DateRange;
   onChange?: (value: DateRange | undefined) => void;
+  disabled?: Matcher | Matcher[];
   triggerClassName?: string;
   placeholder?: string;
 };
@@ -23,6 +24,7 @@ type DatePickerProps = {
 export function DatePicker({
   value,
   onChange,
+  disabled,
   triggerClassName,
   placeholder = "Select dates",
 }: DatePickerProps) {
@@ -39,8 +41,8 @@ export function DatePicker({
       setInternalDate(next);
     }
 
-    // Close once a full range is selected.
-    if (next?.from && next?.to) {
+    // Close once a valid multi-day range is selected.
+    if (next?.from && next?.to && next.from.getTime() !== next.to.getTime()) {
       setOpen(false);
     }
   };
@@ -78,17 +80,19 @@ export function DatePicker({
         <Calendar
           className="[--cell-radius:8px]"
           mode="range"
+          min={1}
           defaultMonth={date?.from}
           selected={date}
           onSelect={handleDateChange}
+          disabled={disabled}
           numberOfMonths={2}
           classNames={{
             range_start:
-              "bg-(--color-accent-light) [&_button]:rounded-l-lg [&_button]:rounded-r-lg [&_button]:bg-(--color-primary) [&_button]:text-white [&_button]:ring-2 [&_button]:ring-(--color-primary-dark) [&_button]:ring-offset-1",
+              "bg-(--color-accent-light) [&_button]:rounded-l-lg [&_button]:rounded-r-none [&_button]:bg-(--color-primary) [&_button]:text-white [&_button]:ring-2 [&_button]:ring-(--color-primary-dark) [&_button]:ring-offset-1",
             range_end:
-              "bg-(--color-accent-light) [&_button]:rounded-l-lg [&_button]:rounded-r-lg [&_button]:bg-(--color-primary) [&_button]:text-white [&_button]:ring-2 [&_button]:ring-(--color-primary-dark) [&_button]:ring-offset-1",
+              "bg-(--color-accent-light) [&_button]:rounded-l-none [&_button]:rounded-r-lg [&_button]:bg-(--color-primary) [&_button]:text-white [&_button]:ring-2 [&_button]:ring-(--color-primary-dark) [&_button]:ring-offset-1",
             range_middle:
-              "bg-(--color-accent-light) [&_button]:bg-(--color-accent-light) [&_button]:text-(--color-text-primary)",
+              "bg-(--color-accent-light) rounded-none [&_button]:rounded-none [&_button]:bg-(--color-accent-light) [&_button]:text-(--color-text-primary)",
           }}
         />
         <div className="flex justify-end mt-3">

@@ -1,5 +1,8 @@
 import { connectDB } from "../src/db.js";
-import { createBooking } from "../src/services/booking.services.js";
+import {
+  createBooking,
+  getBlockedBookingRanges,
+} from "../src/services/booking.services.js";
 import { getAllowedOrigins } from "../src/lib/allowed-origins.js";
 import { config } from "dotenv";
 import { fileURLToPath } from "url";
@@ -56,8 +59,30 @@ export default async function handler(req: any, res: any) {
       return res.status(204).end();
     }
 
-    if (req.method !== "POST") {
+    if (!["GET", "POST"].includes(req.method)) {
       return res.status(405).json({ error: "Method Not Allowed" });
+    }
+
+    if (req.method === "GET") {
+      const listingIdRaw = req.query?.listingId;
+      const listingId = Array.isArray(listingIdRaw)
+        ? listingIdRaw[0]
+        : listingIdRaw;
+
+      if (!listingId || typeof listingId !== "string") {
+        return res.status(400).json({ error: "listingId is required" });
+      }
+
+      const MONGO_URI =
+        process.env.MONGODB_URI || process.env.MONGO_DB_MONGODB_URI;
+
+      if (!MONGO_URI) {
+        return res.status(500).json({ error: "Mongo URI not configured" });
+      }
+
+      await connectDB(MONGO_URI);
+      const blockedDates = await getBlockedBookingRanges(listingId);
+      return res.status(200).json({ blockedDates });
     }
 
     const parsed = bodySchema.safeParse(req.body || {});
