@@ -42,11 +42,11 @@ const fallbackListings = [
 ];
 
 type ApiFeaturedListing = {
-  _id?: string;
-  title?: string;
-  pricePerDay?: number;
-  locationName?: string;
-  images?: string[];
+  _id?: unknown;
+  title?: unknown;
+  pricePerDay?: unknown;
+  locationName?: unknown;
+  images?: unknown;
 };
 
 function seedFromString(value: string): number {
@@ -59,25 +59,50 @@ function seedFromString(value: string): number {
 }
 
 function mapListingToCard(listing: ApiFeaturedListing) {
-  const id = String(listing._id || listing.title || "listing");
+  const idRaw =
+    typeof listing._id === "string"
+      ? listing._id
+      : typeof listing._id === "object" && listing._id !== null
+        ? String(listing._id)
+        : "";
+  const titleRaw =
+    typeof listing.title === "string" && listing.title.trim().length > 0
+      ? listing.title
+      : "Family Listing";
+
+  const id = String(idRaw || titleRaw || "listing");
   const seed = seedFromString(id);
 
-  const image =
-    listing.images?.find(
-      (item): item is string =>
-        typeof item === "string" && item.trim().length > 0,
-    ) || "TinyTribe/CategoryPlaceholders/stroller";
+  const images = Array.isArray(listing.images)
+    ? listing.images.filter(
+        (item): item is string =>
+          typeof item === "string" && item.trim().length > 0,
+      )
+    : [];
+
+  const image = images[0] || "TinyTribe/CategoryPlaceholders/stroller";
+
+  const price =
+    typeof listing.pricePerDay === "number" &&
+    Number.isFinite(listing.pricePerDay)
+      ? listing.pricePerDay
+      : typeof listing.pricePerDay === "string" &&
+          Number.isFinite(Number(listing.pricePerDay))
+        ? Number(listing.pricePerDay)
+        : 10;
+
+  const location =
+    typeof listing.locationName === "string" &&
+    listing.locationName.trim().length > 0
+      ? listing.locationName
+      : "TinyTribe Community";
 
   return {
-    id: listing._id,
+    id: idRaw || undefined,
     image,
-    title: listing.title || "Family Listing",
-    price:
-      typeof listing.pricePerDay === "number" &&
-      Number.isFinite(listing.pricePerDay)
-        ? listing.pricePerDay
-        : 10,
-    location: listing.locationName || "TinyTribe Community",
+    title: titleRaw,
+    price,
+    location,
     rating: 4.6 + (seed % 5) * 0.1,
     reviews: 6 + (seed % 24),
   };
@@ -85,20 +110,28 @@ function mapListingToCard(listing: ApiFeaturedListing) {
 
 async function getFeaturedListings() {
   try {
-    const res = await fetch(buildApiUrl("/api/listings/featured?limit=4"), {
-      next: { revalidate: 180 },
-    });
+    const candidatePaths = [
+      "/api/listings?featured=1&limit=4",
+      "/api/listings/featured?limit=4",
+    ];
 
-    if (!res.ok) {
-      return fallbackListings;
+    for (const path of candidatePaths) {
+      const res = await fetch(buildApiUrl(path), {
+        next: { revalidate: 180 },
+      });
+
+      if (!res.ok) continue;
+
+      const data = (await res.json()) as ApiFeaturedListing[];
+      if (!Array.isArray(data) || data.length === 0) continue;
+
+      return data
+        .filter((item): item is ApiFeaturedListing => Boolean(item))
+        .slice(0, 4)
+        .map(mapListingToCard);
     }
 
-    const data = (await res.json()) as ApiFeaturedListing[];
-    if (!Array.isArray(data) || data.length === 0) {
-      return fallbackListings;
-    }
-
-    return data.slice(0, 4).map(mapListingToCard);
+    return fallbackListings;
   } catch {
     return fallbackListings;
   }
