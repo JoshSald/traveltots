@@ -1,9 +1,16 @@
 import { connectDB } from "../../src/db.js";
-import { getListingById } from "../../src/controllers/listing.controller.js";
+import {
+  deleteListingById,
+  getListingById,
+  updateListing,
+} from "../../src/controllers/listing.controller.js";
 import { getAllowedOrigins } from "../../src/lib/allowed-origins.js";
+import { getAuth } from "../../src/lib/auth.js";
 import { config } from "dotenv";
 import { fileURLToPath } from "url";
 import { dirname, join } from "path";
+import { fromNodeHeaders } from "better-auth/node";
+import { Types } from "mongoose";
 
 // Load environment variables in serverless environment
 const __filename = fileURLToPath(import.meta.url);
@@ -12,6 +19,8 @@ config({ path: join(__dirname, "../../.env.local") });
 
 import "../../src/models/Category.js";
 import "../../src/models/Listing.js";
+import "../../src/models/User.js";
+import { UserModel } from "../../src/models/User.js";
 
 function applyCorsHeaders(req: any, res: any) {
   const origin = req.headers.origin;
@@ -49,7 +58,7 @@ export default async function handler(req: any, res: any) {
       return res.status(204).end();
     }
 
-    if (req.method !== "GET") {
+    if (!["GET", "PATCH", "DELETE"].includes(req.method)) {
       return res.status(405).json({ error: "Method Not Allowed" });
     }
 
@@ -67,6 +76,66 @@ export default async function handler(req: any, res: any) {
 
     if (!listingId || typeof listingId !== "string") {
       return res.status(400).json({ error: "Invalid listing id" });
+    }
+
+    const resolveOwnerId = async () => {
+      const auth = await getAuth();
+      const session = await auth.api.getSession({
+        headers: fromNodeHeaders(req.headers),
+      });
+
+      const sessionUser = session?.user ?? null;
+      const email =
+        typeof sessionUser?.email === "string"
+          ? sessionUser.email.trim().toLowerCase()
+          : null;
+
+      if (email) {
+        const userDoc = await UserModel.findOne({ email }).select("_id").lean();
+        if (userDoc?._id) {
+          return String(userDoc._id);
+        }
+      }
+
+      const candidates = [
+        sessionUser?.id,
+        sessionUser?._id,
+        req?.body?.ownerId,
+      ];
+      for (const candidate of candidates) {
+        if (
+          typeof candidate === "string" &&
+          Types.ObjectId.isValid(candidate)
+        ) {
+          return candidate;
+        }
+      }
+
+      return null;
+    };
+
+    if (req.method === "PATCH") {
+      const ownerId = await resolveOwnerId();
+      if (!ownerId) {
+        return res
+          .status(401)
+          .json({ error: "Please sign in to edit listings" });
+      }
+
+      const updated = await updateListing(listingId, req.body || {}, ownerId);
+      return res.status(200).json(updated);
+    }
+
+    if (req.method === "DELETE") {
+      const ownerId = await resolveOwnerId();
+      if (!ownerId) {
+        return res
+          .status(401)
+          .json({ error: "Please sign in to delete listings" });
+      }
+
+      await deleteListingById(listingId, ownerId);
+      return res.status(200).json({ ok: true });
     }
 
     const listing = await getListingById(listingId);
