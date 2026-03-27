@@ -159,7 +159,7 @@ export async function updateListing(
   }
 
   if (payload.model !== undefined) {
-    listing.model = ensureString(payload.model, "Model");
+    listing.set("model", ensureString(payload.model, "Model"));
   }
 
   if (payload.locationName !== undefined) {

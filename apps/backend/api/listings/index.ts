@@ -61,7 +61,7 @@ async function resolveOwnerId(req: any) {
     }
   }
 
-  const candidates = [sessionUser?.id, sessionUser?._id, req?.body?.ownerId];
+  const candidates = [sessionUser?.id, req?.body?.ownerId];
   for (const candidate of candidates) {
     if (typeof candidate === "string" && Types.ObjectId.isValid(candidate)) {
       return candidate;

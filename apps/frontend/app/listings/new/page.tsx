@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -140,7 +140,7 @@ async function geocodeLocationName(locationName: string) {
   return center as [number, number];
 }
 
-export default function NewListingPage() {
+function NewListingPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const editingListingId = searchParams.get("listingId");
@@ -1092,5 +1092,23 @@ export default function NewListingPage() {
         </form>
       </div>
     </main>
+  );
+}
+
+export default function NewListingPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="min-h-screen bg-(--color-background) text-(--color-text-primary)">
+          <div className="mx-auto max-w-4xl px-6 pb-16 pt-24 md:px-8">
+            <p className="text-sm text-(--color-text-muted)">
+              Loading listing form...
+            </p>
+          </div>
+        </main>
+      }
+    >
+      <NewListingPageContent />
+    </Suspense>
   );
 }

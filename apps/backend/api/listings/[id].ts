@@ -97,11 +97,7 @@ export default async function handler(req: any, res: any) {
         }
       }
 
-      const candidates = [
-        sessionUser?.id,
-        sessionUser?._id,
-        req?.body?.ownerId,
-      ];
+      const candidates = [sessionUser?.id, req?.body?.ownerId];
       for (const candidate of candidates) {
         if (
           typeof candidate === "string" &&
